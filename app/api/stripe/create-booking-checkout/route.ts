@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/db';
-import { bookings, services, techProfiles } from '@/db/schema';
+import { bookings, services, techProfiles, sessions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { verifyToken } from '@/lib/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-11-17.clover',
@@ -22,13 +23,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const session = await db.query.sessions.findFirst({
-      where: (sessions, { eq }) => eq(sessions.token, token),
-      with: { user: true },
+    // First try to verify as JWT token (for localStorage auth)
+    let userId: number | null = null;
+    const jwtPayload = await verifyToken(token);
+    if (jwtPayload) {
+      userId = jwtPayload.userId;
+    } else {
+      // Fallback to session lookup in database
+      const session = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, token),
+        with: { user: true },
+      });
+
+      if (!session || new Date(session.expiresAt) < new Date()) {
+        return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      }
+      userId = session.userId;
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // Get user data
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, userId),
     });
 
-    if (!session || new Date(session.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -57,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user owns this booking
-    if (booking.clientId !== session.userId) {
+    if (booking.clientId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -89,7 +112,7 @@ export async function POST(request: NextRequest) {
     const paymentIntentData: any = {
       metadata: {
         bookingId: bookingId.toString(),
-        userId: session.userId.toString(),
+        userId: userId.toString(),
         techProfileId: techProfile.id.toString(),
         type: 'booking_payment',
       },
@@ -123,10 +146,10 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/bookings?payment=success&booking_id=${bookingId}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/bookings?payment=cancelled`,
-      customer_email: (session.user as any).email,
+      customer_email: user.email,
       metadata: {
         bookingId: bookingId.toString(),
-        userId: session.userId.toString(),
+        userId: userId.toString(),
         techProfileId: techProfile.id.toString(),
         type: 'booking_payment',
       },

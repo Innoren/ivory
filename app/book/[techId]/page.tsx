@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { ElegantCalendar } from '@/components/elegant-calendar';
 import { ArrowLeft, Clock, CheckCircle2, Loader2, Sparkles, MapPin, Star, Info } from 'lucide-react';
 import { BottomNav } from '@/components/bottom-nav';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 const CONVENIENCE_FEE_PERCENT = 0.15; // 15% convenience fee
@@ -44,14 +45,25 @@ export default function BookAppointmentPage() {
 
   const fetchTechDetails = async () => {
     try {
-      const response = await fetch(`/api/tech/${techId}`);
+      // Get token from localStorage for authentication
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`/api/tech/${techId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (response.ok) {
         setTech(data.tech);
         setServices(data.tech.services || []);
         
         // Fetch availability
-        const availRes = await fetch(`/api/tech/availability?techProfileId=${techId}`);
+        const availRes = await fetch(`/api/tech/availability?techProfileId=${techId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         if (availRes.ok) {
           const availData = await availRes.json();
           setTechAvailability(availData.availability || []);
@@ -177,9 +189,15 @@ export default function BookAppointmentPage() {
         appointmentDateTime.setHours(hours, minutes);
       }
 
+      // Get token from localStorage for authentication
+      const token = localStorage.getItem('token');
+      
       const bookingResponse = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           techProfileId: parseInt(techId),
           serviceId: parseInt(selectedService),
@@ -379,8 +397,7 @@ export default function BookAppointmentPage() {
           </div>
           <div className="p-4">
             <div className="flex justify-center mb-4">
-              <Calendar
-                mode="single"
+              <ElegantCalendar
                 selected={selectedDate}
                 onSelect={(date) => {
                   triggerHaptic('light');
@@ -388,20 +405,25 @@ export default function BookAppointmentPage() {
                   setSelectedTime('');
                 }}
                 disabled={(date) => !isDateAvailable(date)}
-                className="rounded-xl border-0"
+                className="border-0 shadow-none p-0"
               />
             </div>
 
             {selectedDate && (
-              <div className="pt-4 border-t border-[#E8E8E8]/50">
-                <p className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B] mb-3 font-medium">Available Times</p>
+              <div className="pt-6 border-t border-[#E8E8E8]/30">
+                <p className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B] mb-4 font-light">Available Times</p>
                 {availableTimes.length === 0 ? (
-                  <div className="text-center py-6 bg-[#F8F7F5] rounded-xl">
-                    <p className="text-[13px] text-[#6B6B6B]">No available times on this date</p>
-                    <p className="text-[11px] text-[#8E8E93] mt-1">Please select another date</p>
+                  <div className="text-center py-8 bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl border border-[#E8E8E8]/30">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white shadow-sm flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#8B7355]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-[13px] text-[#6B6B6B] font-light">No available times on this date</p>
+                    <p className="text-[11px] text-[#8E8E93] mt-1 font-light">Please select another date</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     {availableTimes.map((time) => (
                       <button
                         key={time}
@@ -409,13 +431,23 @@ export default function BookAppointmentPage() {
                           triggerHaptic('light');
                           setSelectedTime(time);
                         }}
-                        className={`py-2.5 text-[12px] font-medium rounded-lg transition-all duration-200 active:scale-95 ${
+                        className={cn(
+                          "py-3 px-2 text-[12px] font-light rounded-xl transition-all duration-300 relative group",
                           selectedTime === time
-                            ? 'bg-[#8B7355] text-white shadow-md'
-                            : 'bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8]'
-                        }`}
+                            ? "bg-[#8B7355] text-white shadow-lg shadow-[#8B7355]/20 scale-105"
+                            : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8] hover:scale-105 hover:shadow-md hover:shadow-[#8B7355]/10",
+                          "active:scale-95"
+                        )}
                       >
-                        {time}
+                        <span className={cn(
+                          "transition-all duration-300",
+                          selectedTime === time && "font-medium"
+                        )}>
+                          {time}
+                        </span>
+                        {selectedTime !== time && (
+                          <div className="absolute inset-0 rounded-xl ring-1 ring-[#8B7355]/0 group-hover:ring-[#8B7355]/20 transition-all duration-300" />
+                        )}
                       </button>
                     ))}
                   </div>

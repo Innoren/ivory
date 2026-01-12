@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { bookings, techProfiles, services, users, notifications } from '@/db/schema';
+import { bookings, techProfiles, services, users, notifications, sessions } from '@/db/schema';
 import { eq, and, gte, lte, or } from 'drizzle-orm';
+import { verifyToken } from '@/lib/auth';
 
 // GET - Fetch bookings (client or tech view)
 export async function GET(request: NextRequest) {
@@ -19,21 +20,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const session = await db.query.sessions.findFirst({
-      where: (sessions, { eq }) => eq(sessions.token, token),
-      with: { user: true },
+    // First try to verify as JWT token (for localStorage auth)
+    let userId: number | null = null;
+    const jwtPayload = await verifyToken(token);
+    if (jwtPayload) {
+      userId = jwtPayload.userId;
+    } else {
+      // Fallback to session lookup in database
+      const session = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, token),
+        with: { user: true },
+      });
+
+      if (!session || new Date(session.expiresAt) < new Date()) {
+        console.log('Invalid or expired session');
+        return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      }
+      userId = session.userId;
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // Get user data
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, userId),
     });
 
-    console.log('Session found:', session ? `User ID: ${session.userId}` : 'null');
-
-    if (!session || new Date(session.expiresAt) < new Date()) {
-      console.log('Invalid or expired session');
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const userType = (session.user as any).userType;
+    const userType = user.userType;
 
     let userBookings;
 
@@ -41,8 +62,8 @@ export async function GET(request: NextRequest) {
       // Client view: their bookings
       userBookings = await db.query.bookings.findMany({
         where: status 
-          ? and(eq(bookings.clientId, session.userId), eq(bookings.status, status as any))
-          : eq(bookings.clientId, session.userId),
+          ? and(eq(bookings.clientId, userId), eq(bookings.status, status as any))
+          : eq(bookings.clientId, userId),
         with: {
           techProfile: {
             with: {
@@ -62,7 +83,7 @@ export async function GET(request: NextRequest) {
             where: (reviews, { and, eq }) =>
               and(
                 eq(reviews.techProfileId, booking.techProfileId),
-                eq(reviews.clientId, session.userId)
+                eq(reviews.clientId, userId)
               ),
           });
           return {
@@ -76,7 +97,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Tech view: bookings for their profile
       const techProfile = await db.query.techProfiles.findFirst({
-        where: eq(techProfiles.userId, session.userId),
+        where: eq(techProfiles.userId, userId),
       });
 
       if (!techProfile) {
@@ -116,11 +137,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const session = await db.query.sessions.findFirst({
-      where: (sessions, { eq }) => eq(sessions.token, token),
-    });
+    // First try to verify as JWT token (for localStorage auth)
+    let userId: number | null = null;
+    const jwtPayload = await verifyToken(token);
+    if (jwtPayload) {
+      userId = jwtPayload.userId;
+    } else {
+      // Fallback to session lookup in database
+      const session = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, token),
+      });
 
-    if (!session || new Date(session.expiresAt) < new Date()) {
+      if (!session || new Date(session.expiresAt) < new Date()) {
+        return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      }
+      userId = session.userId;
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
 
@@ -186,7 +220,7 @@ export async function POST(request: NextRequest) {
 
     // Create booking
     const [newBooking] = await db.insert(bookings).values({
-      clientId: session.userId,
+      clientId: userId,
       techProfileId,
       serviceId,
       lookId: lookId || null,
