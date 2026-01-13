@@ -352,6 +352,38 @@ export function SubscriptionPlans({ currentTier = 'free', currentStatus = 'inact
         </div>
       )}
 
+      {/* Restore Purchases Button - Required by Apple Guidelines 3.1.1 */}
+      <div className="border border-[#E8E8E8] p-4 sm:p-5 bg-[#F8F7F5]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1">
+            <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Already subscribed?</p>
+            <p className="text-xs text-[#6B6B6B] font-light">
+              {isNative 
+                ? "Restore your previous purchases to access your subscription."
+                : "Restore purchases is available on iOS devices."}
+            </p>
+          </div>
+          <Button
+            onClick={handleRestorePurchases}
+            disabled={restoring || !isNative}
+            variant="outline"
+            className="h-10 px-6 border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355]/10 font-light text-sm tracking-wider uppercase transition-all duration-300 disabled:opacity-50 whitespace-nowrap"
+          >
+            {restoring ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" strokeWidth={1} />
+                Restoring...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4 mr-2" strokeWidth={1} />
+                Restore Purchases
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Basic Tier */}
       <div className={`border ${isBasicPlan ? 'border-[#8B7355]' : 'border-[#E8E8E8]'} p-6 sm:p-8 bg-white`}>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-6">
@@ -562,33 +594,6 @@ export function SubscriptionPlans({ currentTier = 'free', currentStatus = 'inact
               <p className="text-xs text-[#6B6B6B] font-light">No long-term commitment</p>
             </div>
           </div>
-        </div>
-
-        {/* Restore Purchases Button - Required by Apple Guidelines 3.1.1 */}
-        <div className="mt-6 pt-6 border-t border-[#E8E8E8]">
-          <Button
-            onClick={handleRestorePurchases}
-            disabled={restoring || !isNative}
-            variant="outline"
-            className="w-full h-12 border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355]/10 font-light text-sm tracking-wider uppercase transition-all duration-300 disabled:opacity-50"
-          >
-            {restoring ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" strokeWidth={1} />
-                Restoring...
-              </>
-            ) : (
-              <>
-                <RotateCcw className="h-4 w-4 mr-2" strokeWidth={1} />
-                Restore Purchases
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-center text-[#6B6B6B] font-light mt-3">
-            {isNative 
-              ? "Already subscribed? Tap to restore your previous purchases."
-              : "Restore purchases is available on iOS devices."}
-          </p>
         </div>
       </div>
     </div>
