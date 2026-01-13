@@ -45,31 +45,15 @@ export default function BookAppointmentPage() {
 
   const fetchTechDetails = async () => {
     try {
-      // Get token from localStorage for authentication
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        alert('Please log in to view tech details');
-        router.push('/auth');
-        return;
-      }
-      
-      const response = await fetch(`/api/tech/${techId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      // Tech details are public - no auth required for viewing
+      const response = await fetch(`/api/tech/${techId}`);
       const data = await response.json();
       if (response.ok) {
         setTech(data.tech);
         setServices(data.tech.services || []);
         
-        // Fetch availability
-        const availRes = await fetch(`/api/tech/availability?techProfileId=${techId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        // Fetch availability (also public)
+        const availRes = await fetch(`/api/tech/availability?techProfileId=${techId}`);
         if (availRes.ok) {
           const availData = await availRes.json();
           setTechAvailability(availData.availability || []);
