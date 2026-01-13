@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
               id: true,
               username: true,
               email: true,
+              avatar: true,
             }
           }
         }
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
         businessName: profile.businessName,
         location: profile.location || 'Location not set',
         rating: 0, // TODO: Calculate actual rating from reviews
-        avatar: null, // TODO: Add avatar field to tech profiles
+        avatar: profile.user?.avatar || null, // Get avatar from user data
         bio: profile.bio,
         instagramHandle: profile.instagramHandle,
         phoneNumber: profile.phoneNumber,
