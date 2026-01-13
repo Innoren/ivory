@@ -102,10 +102,10 @@ export default function LookDetailPage() {
           <div className="flex items-center justify-between">
             <button 
               onClick={() => router.back()} 
-              className="flex items-center gap-3 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[48px] -ml-2 pl-2 pr-6 py-3 rounded-lg hover:bg-[#F8F7F5]"
+              className="flex items-center gap-3 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[48px] min-w-[48px] -ml-2 pl-2 pr-6 py-3 rounded-lg hover:bg-[#F8F7F5] touch-manipulation"
             >
               <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
-              <span className="text-xs tracking-[0.3em] uppercase font-medium">Back</span>
+              <span className="text-xs sm:text-sm tracking-[0.2em] uppercase font-medium hidden sm:inline">Back</span>
             </button>
             
             {/* Page Title */}

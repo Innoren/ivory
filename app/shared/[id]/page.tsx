@@ -255,10 +255,10 @@ export default function SharedDesignPage() {
               <div className="flex items-center gap-3 sm:gap-4">
                 <button 
                   onClick={() => router.back()} 
-                  className="flex items-center gap-2 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[44px] -ml-2 pl-2 pr-3 py-2 rounded-lg hover:bg-[#F8F7F5]"
+                  className="flex items-center gap-2 sm:gap-3 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[48px] min-w-[48px] -ml-2 pl-2 pr-4 py-3 rounded-lg hover:bg-[#F8F7F5] touch-manipulation"
                 >
-                  <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-1 transition-transform" strokeWidth={1.5} />
-                  <span className="text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.3em] uppercase font-light">Back</span>
+                  <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
+                  <span className="text-xs sm:text-sm tracking-[0.2em] uppercase font-medium hidden sm:inline">Back</span>
                 </button>
                 
                 <div className="flex items-center gap-2 sm:gap-3">
