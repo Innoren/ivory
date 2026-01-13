@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2, Sparkles } from 'lucide-react';
+import { Check, Loader2, Sparkles, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getClientPlans, getTechPlans } from '@/lib/stripe-config';
 import { iapManager, IAP_PRODUCT_IDS } from '@/lib/iap';
@@ -26,6 +26,7 @@ export function SubscriptionPlans({ currentTier = 'free', currentStatus = 'inact
   const [iapError, setIapError] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   
   // Get plans based on user type
   const plans = userType === 'tech' ? getTechPlans() : getClientPlans();
@@ -260,6 +261,34 @@ export function SubscriptionPlans({ currentTier = 'free', currentStatus = 'inact
   };
 
   const isBasicPlan = currentTier === 'free';
+
+  const handleRestorePurchases = async () => {
+    if (!isNative) {
+      toast.error('Restore is only available on iOS devices');
+      return;
+    }
+
+    try {
+      setRestoring(true);
+      console.log('🔵 Starting restore purchases...');
+      
+      await iapManager.restorePurchases();
+      
+      toast.success('Restore completed! If you have an active subscription, it will be restored shortly.');
+      console.log('✅ Restore purchases completed');
+      
+      // Reload to reflect any restored purchases
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('❌ Restore purchases error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to restore purchases';
+      toast.error(errorMessage);
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -533,6 +562,33 @@ export function SubscriptionPlans({ currentTier = 'free', currentStatus = 'inact
               <p className="text-xs text-[#6B6B6B] font-light">No long-term commitment</p>
             </div>
           </div>
+        </div>
+
+        {/* Restore Purchases Button - Required by Apple Guidelines 3.1.1 */}
+        <div className="mt-6 pt-6 border-t border-[#E8E8E8]">
+          <Button
+            onClick={handleRestorePurchases}
+            disabled={restoring || !isNative}
+            variant="outline"
+            className="w-full h-12 border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355]/10 font-light text-sm tracking-wider uppercase transition-all duration-300 disabled:opacity-50"
+          >
+            {restoring ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" strokeWidth={1} />
+                Restoring...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4 mr-2" strokeWidth={1} />
+                Restore Purchases
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-center text-[#6B6B6B] font-light mt-3">
+            {isNative 
+              ? "Already subscribed? Tap to restore your previous purchases."
+              : "Restore purchases is available on iOS devices."}
+          </p>
         </div>
       </div>
     </div>
