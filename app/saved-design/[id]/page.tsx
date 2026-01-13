@@ -65,8 +65,8 @@ export default function SavedDesignDetailPage() {
   }
 
   const handleSendToTech = () => {
-    // TODO: Implement send to tech functionality
-    alert('Send to Nail Tech feature coming soon!')
+    if (!design) return
+    router.push(`/send-to-tech/${design.id}`)
   }
 
   const handleShare = async () => {
