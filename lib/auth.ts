@@ -82,6 +82,7 @@ export async function getSession() {
       email: user.email,
       userType: user.userType,
       avatar: user.avatar,
+      token: token, // Include the token for frontend use
     };
   } catch (error) {
     console.error('❌ Session verification error:', error);

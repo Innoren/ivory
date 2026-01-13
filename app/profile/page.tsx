@@ -177,6 +177,7 @@ export default function ProfilePage() {
       
       // Clear localStorage
       localStorage.removeItem("ivoryUser")
+      localStorage.removeItem("token")
       
       // Redirect to home
       router.push("/")
@@ -184,6 +185,7 @@ export default function ProfilePage() {
       console.error('Logout failed:', error)
       // Still clear localStorage and redirect even if API call fails
       localStorage.removeItem("ivoryUser")
+      localStorage.removeItem("token")
       router.push("/")
     }
   }

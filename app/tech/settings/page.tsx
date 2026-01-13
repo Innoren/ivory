@@ -59,10 +59,12 @@ export default function TechSettingsPage() {
         method: 'POST',
       });
       localStorage.removeItem("ivoryUser");
+      localStorage.removeItem("token");
       router.push("/");
     } catch (error) {
       console.error('Logout failed:', error);
       localStorage.removeItem("ivoryUser");
+      localStorage.removeItem("token");
       router.push("/");
     }
   };

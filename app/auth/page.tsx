@@ -100,6 +100,11 @@ function AuthPageContent() {
           // User is already logged in, redirect them
           localStorage.setItem("ivoryUser", JSON.stringify(data.user))
           
+          // Also store the token separately for API calls
+          if (data.user.token) {
+            localStorage.setItem("token", data.user.token)
+          }
+          
           // Check if there's a return URL stored
           const returnUrl = localStorage.getItem('returnUrl')
           if (returnUrl) {
@@ -137,6 +142,11 @@ function AuthPageContent() {
           if (data.user) {
             clearInterval(pollInterval)
             localStorage.setItem("ivoryUser", JSON.stringify(data.user))
+            
+            // Also store the token separately for API calls
+            if (data.user.token) {
+              localStorage.setItem("token", data.user.token)
+            }
             
             if (data.user.userType === 'tech') {
               router.push('/tech/dashboard')
@@ -220,6 +230,11 @@ function AuthPageContent() {
         
         const user = await response.json()
         localStorage.setItem("ivoryUser", JSON.stringify(user))
+        
+        // Also store the token separately for API calls
+        if (user.token) {
+          localStorage.setItem("token", user.token)
+        }
         
         // Check if there's a return URL stored
         const returnUrl = localStorage.getItem('returnUrl')
