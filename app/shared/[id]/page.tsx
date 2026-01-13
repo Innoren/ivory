@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Heart, Loader2, Download, Share2, Sparkles } from "lucide-react"
+import { Heart, Loader2, Download, Share2, Sparkles, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import Head from "next/head"
 import ContentModerationMenu from "@/components/content-moderation-menu"
@@ -249,31 +249,46 @@ export default function SharedDesignPage() {
       <div className="min-h-screen bg-white pb-safe">
         {/* Header */}
         <header className="bg-white border-b border-[#E8E8E8] sticky top-0 z-10 pt-safe">
-          <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Image 
-                src="/Web_logo.png" 
-                alt="Ivory's Choice" 
-                width={45}
-                height={45}
-                className="h-8 sm:h-9 w-auto"
-                priority
-              />
-              <h1 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">IVORY'S CHOICE</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleShare}
-                className="p-2 text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-300 active:scale-95"
-              >
-                <Share2 className="w-5 h-5" strokeWidth={1.5} />
-              </button>
-              <button
-                onClick={handleDownload}
-                className="p-2 text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-300 active:scale-95"
-              >
-                <Download className="w-5 h-5" strokeWidth={1.5} />
-              </button>
+          <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
+            <div className="flex items-center justify-between">
+              {/* Left side - Back button and Logo */}
+              <div className="flex items-center gap-3 sm:gap-4">
+                <button 
+                  onClick={() => router.back()} 
+                  className="flex items-center gap-2 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[44px] -ml-2 pl-2 pr-3 py-2 rounded-lg hover:bg-[#F8F7F5]"
+                >
+                  <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-1 transition-transform" strokeWidth={1.5} />
+                  <span className="text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.3em] uppercase font-light">Back</span>
+                </button>
+                
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Image 
+                    src="/Web_logo.png" 
+                    alt="Ivory's Choice" 
+                    width={45}
+                    height={45}
+                    className="h-8 sm:h-9 w-auto"
+                    priority
+                  />
+                  <h1 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight">IVORY'S CHOICE</h1>
+                </div>
+              </div>
+              
+              {/* Right side - Action buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleShare}
+                  className="p-2 text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-300 active:scale-95"
+                >
+                  <Share2 className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="p-2 text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-300 active:scale-95"
+                >
+                  <Download className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+              </div>
             </div>
           </div>
         </header>

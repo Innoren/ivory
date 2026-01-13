@@ -95,17 +95,27 @@ export default function LookDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-safe">
-      {/* Header with Back Button */}
-      <header className={`bg-white border-b border-[#E8E8E8] sticky top-0 z-10 pt-safe backdrop-blur-sm bg-white/95 transition-all duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <button 
-            onClick={() => router.back()} 
-            className="flex items-center gap-2 text-[#1A1A1A] hover:text-[#8B7355] transition-colors duration-500 group active:scale-95 min-h-[44px] -ml-2 pl-2 pr-4"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-500" strokeWidth={1} />
-            <span className="text-[10px] tracking-[0.3em] uppercase font-light">Back</span>
-          </button>
+    <div className="min-h-screen bg-white pb-safe relative">
+      {/* Header with Back Button - Enhanced Visibility */}
+      <header className="bg-white border-b-2 border-[#E8E8E8] sticky top-0 z-50 pt-safe backdrop-blur-sm bg-white shadow-md">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => router.back()} 
+              className="flex items-center gap-3 text-[#1A1A1A] hover:text-[#8B7355] transition-colors group active:scale-95 min-h-[48px] -ml-2 pl-2 pr-6 py-3 rounded-lg hover:bg-[#F8F7F5]"
+            >
+              <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
+              <span className="text-xs tracking-[0.3em] uppercase font-medium">Back</span>
+            </button>
+            
+            {/* Page Title */}
+            <div className="flex-1 text-center">
+              <h1 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">Your Design</h1>
+            </div>
+            
+            {/* Spacer to balance the layout */}
+            <div className="w-[80px] sm:w-[100px]"></div>
+          </div>
         </div>
       </header>
 
