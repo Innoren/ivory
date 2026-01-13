@@ -158,6 +158,13 @@ export default function HomePage() {
     }
   }, [router])
 
+  // Load initial techs when search tab becomes active
+  useEffect(() => {
+    if (activeTab === 'search') {
+      loadInitialTechs()
+    }
+  }, [activeTab])
+
   const fetchMyBookings = async (userIdParam?: number) => {
     try {
       const userStr = localStorage.getItem('ivoryUser')
@@ -213,11 +220,31 @@ export default function HomePage() {
       const data = await response.json()
       if (response.ok) {
         setTechs(data.techs)
+      } else {
+        console.error('Error searching techs:', data.error)
       }
     } catch (error) {
       console.error('Error searching techs:', error)
     } finally {
       setSearchLoading(false)
+    }
+  }
+
+  // Load initial techs when search tab is opened
+  const loadInitialTechs = async () => {
+    if (techs.length === 0) { // Only load if not already loaded
+      setSearchLoading(true)
+      try {
+        const response = await fetch('/api/tech/search') // No params = get all techs
+        const data = await response.json()
+        if (response.ok) {
+          setTechs(data.techs)
+        }
+      } catch (error) {
+        console.error('Error loading initial techs:', error)
+      } finally {
+        setSearchLoading(false)
+      }
     }
   }
 
@@ -590,11 +617,30 @@ export default function HomePage() {
             </div>
 
             {/* Tech Results Grid */}
+            {searchLoading && (
+              <div className="text-center py-12">
+                <p className="text-[#6B6B6B] font-light">Searching for nail technicians...</p>
+              </div>
+            )}
+            
+            {!searchLoading && techs.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-[#6B6B6B] font-light">
+                  {searchQuery || location ? 'No nail technicians found matching your search.' : 'No nail technicians available. Try refreshing the page.'}
+                </p>
+                {process.env.NODE_ENV === 'development' && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    Debug: Query="{searchQuery}", Location="{location}", Techs loaded: {techs.length}
+                  </p>
+                )}
+              </div>
+            )}
+            
             {techs.length > 0 && (
               <div>
                 <div className="mb-5 sm:mb-8">
                   <p className="text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-[#8B7355] mb-2 font-light">
-                    Results
+                    Results ({techs.length} found)
                   </p>
                   <h3 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light text-[#1A1A1A] tracking-[-0.01em]">
                     Available Nail Technicians
@@ -909,16 +955,28 @@ export default function HomePage() {
                           className="w-full bg-[#1A1A1A] hover:bg-[#8B7355] text-white h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
                           onClick={async (e) => {
                             e.stopPropagation();
-                            const response = await fetch('/api/stripe/create-booking-checkout', {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({ bookingId: booking.id }),
-                            });
-                            const data = await response.json();
-                            if (response.ok) {
+                            try {
+                              const token = localStorage.getItem('token');
+                              const response = await fetch('/api/stripe/create-booking-checkout', {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({ bookingId: booking.id }),
+                              });
+                              
+                              if (!response.ok) {
+                                const error = await response.json();
+                                alert(error.error || 'Failed to create payment session');
+                                return;
+                              }
+                              
+                              const data = await response.json();
                               window.location.href = data.url;
+                            } catch (error) {
+                              console.error('Error creating payment session:', error);
+                              alert('Failed to create payment session. Please try again.');
                             }
                           }}
                         >

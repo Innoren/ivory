@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
       // Only location
       whereCondition = ilike(techProfiles.location, `%${location}%`);
     }
+    // If both are empty, whereCondition stays undefined - this will return all techs
 
     const techs = await db.query.techProfiles.findMany({
       where: whereCondition,

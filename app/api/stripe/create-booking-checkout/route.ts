@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
     }
     
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('No token provided in request');
+      return NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 });
     }
 
     // First try to verify as JWT token (for localStorage auth)
@@ -36,13 +37,15 @@ export async function POST(request: NextRequest) {
       });
 
       if (!session || new Date(session.expiresAt) < new Date()) {
-        return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+        console.error('Invalid or expired session token');
+        return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
       }
       userId = session.userId;
     }
 
     if (!userId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      console.error('Could not extract userId from token');
+      return NextResponse.json({ error: 'Invalid session - no user ID' }, { status: 401 });
     }
 
     // Get user data
