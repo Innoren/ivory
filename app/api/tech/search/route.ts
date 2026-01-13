@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { techProfiles, users } from '@/db/schema';
-import { ilike, or, and } from 'drizzle-orm';
+import { techProfiles, users, services, portfolioImages } from '@/db/schema';
+import { ilike, or, and, eq } from 'drizzle-orm';
 
 // GET - Search nail techs
 export async function GET(request: NextRequest) {
@@ -10,53 +10,83 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q') || '';
     const location = searchParams.get('location') || '';
 
-    let whereCondition;
+    console.log('Search params:', { query, location }); // Debug log
 
-    // Build search conditions
-    if (query && location) {
-      // Both query and location
-      whereCondition = and(
-        or(
-          ilike(techProfiles.businessName, `%${query}%`),
-          ilike(techProfiles.bio, `%${query}%`)
-        ),
-        ilike(techProfiles.location, `%${location}%`)
-      );
-    } else if (query) {
-      // Only query
-      whereCondition = or(
-        ilike(techProfiles.businessName, `%${query}%`),
-        ilike(techProfiles.bio, `%${query}%`)
-      );
-    } else if (location) {
-      // Only location
-      whereCondition = ilike(techProfiles.location, `%${location}%`);
-    }
-    // If both are empty, whereCondition stays undefined - this will return all techs
-
-    const techs = await db.query.techProfiles.findMany({
-      where: whereCondition,
-      with: {
+    // Use a join query to search across both techProfiles and users tables
+    const techs = await db
+      .select({
+        id: techProfiles.id,
+        userId: techProfiles.userId,
+        businessName: techProfiles.businessName,
+        location: techProfiles.location,
+        bio: techProfiles.bio,
+        rating: techProfiles.rating,
+        totalReviews: techProfiles.totalReviews,
+        phoneNumber: techProfiles.phoneNumber,
+        website: techProfiles.website,
+        instagramHandle: techProfiles.instagramHandle,
+        tiktokHandle: techProfiles.tiktokHandle,
+        facebookHandle: techProfiles.facebookHandle,
+        otherSocialLinks: techProfiles.otherSocialLinks,
+        isVerified: techProfiles.isVerified,
+        stripeConnectAccountId: techProfiles.stripeConnectAccountId,
+        stripeAccountStatus: techProfiles.stripeAccountStatus,
+        payoutsEnabled: techProfiles.payoutsEnabled,
+        chargesEnabled: techProfiles.chargesEnabled,
+        createdAt: techProfiles.createdAt,
+        updatedAt: techProfiles.updatedAt,
         user: {
-          columns: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          id: users.id,
+          username: users.username,
+          avatar: users.avatar,
         },
-        services: {
-          where: (services, { eq }) => eq(services.isActive, true),
-        },
-        portfolioImages: {
-          limit: 6,
-          orderBy: (portfolioImages, { desc }) => [desc(portfolioImages.orderIndex)],
-        },
-      },
-      orderBy: (techProfiles, { desc }) => [desc(techProfiles.rating)],
-      limit: 50,
-    });
+      })
+      .from(techProfiles)
+      .innerJoin(users, eq(techProfiles.userId, users.id))
+      .where(
+        and(
+          // Search conditions
+          query ? or(
+            ilike(techProfiles.businessName, `%${query}%`),
+            ilike(techProfiles.bio, `%${query}%`),
+            ilike(users.username, `%${query}%`)
+          ) : undefined,
+          // Location condition
+          location ? ilike(techProfiles.location, `%${location}%`) : undefined
+        )
+      )
+      .orderBy(techProfiles.rating)
+      .limit(50);
 
-    return NextResponse.json({ techs });
+    // Now get the related data for each tech
+    const techsWithRelations = await Promise.all(
+      techs.map(async (tech) => {
+        // Get services
+        const techServices = await db.query.services.findMany({
+          where: and(
+            eq(services.techProfileId, tech.id),
+            eq(services.isActive, true)
+          ),
+        });
+
+        // Get portfolio images
+        const techPortfolioImages = await db.query.portfolioImages.findMany({
+          where: eq(portfolioImages.techProfileId, tech.id),
+          orderBy: (portfolioImages, { desc }) => [desc(portfolioImages.orderIndex)],
+          limit: 6,
+        });
+
+        return {
+          ...tech,
+          services: techServices,
+          portfolioImages: techPortfolioImages,
+        };
+      })
+    );
+
+    console.log(`Found ${techsWithRelations.length} techs`); // Debug log
+
+    return NextResponse.json({ techs: techsWithRelations });
   } catch (error) {
     console.error('Error searching techs:', error);
     return NextResponse.json({ error: 'Failed to search techs' }, { status: 500 });
