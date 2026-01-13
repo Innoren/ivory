@@ -962,6 +962,13 @@ export default function HomePage() {
                             e.stopPropagation();
                             try {
                               const token = localStorage.getItem('token');
+                              
+                              if (!token) {
+                                alert('Please log in to complete payment');
+                                router.push('/auth');
+                                return;
+                              }
+                              
                               const response = await fetch('/api/stripe/create-booking-checkout', {
                                 method: 'POST',
                                 headers: {

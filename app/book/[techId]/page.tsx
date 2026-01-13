@@ -48,6 +48,12 @@ export default function BookAppointmentPage() {
       // Get token from localStorage for authentication
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        alert('Please log in to view tech details');
+        router.push('/auth');
+        return;
+      }
+      
       const response = await fetch(`/api/tech/${techId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -192,6 +198,12 @@ export default function BookAppointmentPage() {
       // Get token from localStorage for authentication
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        alert('Please log in to book an appointment');
+        router.push('/auth');
+        return;
+      }
+      
       const bookingResponse = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 
@@ -223,6 +235,13 @@ export default function BookAppointmentPage() {
   const handleStripePayment = async (booking: any) => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('Please log in to complete payment');
+        router.push('/auth');
+        return;
+      }
+      
       const response = await fetch('/api/stripe/create-booking-checkout', {
         method: 'POST',
         headers: {
