@@ -43,6 +43,33 @@ export default function BookAppointmentPage() {
     }
   }, [selectedDate, techAvailability, techTimeOff]);
 
+  // Handle returning from authentication
+  useEffect(() => {
+    const pendingBooking = localStorage.getItem('pendingBooking');
+    if (pendingBooking && localStorage.getItem('token')) {
+      try {
+        const booking = JSON.parse(pendingBooking);
+        if (booking.techId === parseInt(techId)) {
+          // Clear the pending booking
+          localStorage.removeItem('pendingBooking');
+          
+          // Auto-fill the form if possible
+          if (booking.serviceId) {
+            setSelectedService(booking.serviceId.toString());
+          }
+          
+          // Show a helpful message
+          setTimeout(() => {
+            alert('Welcome back! Please select your appointment details and continue with booking.');
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error handling pending booking:', error);
+        localStorage.removeItem('pendingBooking');
+      }
+    }
+  }, [techId]);
+
   const fetchTechDetails = async () => {
     try {
       // Tech details are public - no auth required for viewing
@@ -183,8 +210,19 @@ export default function BookAppointmentPage() {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        alert('Please log in to book an appointment');
-        router.push('/auth');
+        // Store booking details for after login
+        const bookingDetails = {
+          techId: parseInt(techId),
+          serviceId: parseInt(selectedService),
+          appointmentDate: appointmentDateTime.toISOString(),
+          returnUrl: `/book/${techId}`
+        };
+        localStorage.setItem('pendingBooking', JSON.stringify(bookingDetails));
+        
+        // Better user experience - confirm before redirect
+        if (confirm('You need to log in to book an appointment. Would you like to log in now?')) {
+          router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
+        }
         return;
       }
       
@@ -221,8 +259,10 @@ export default function BookAppointmentPage() {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        alert('Please log in to complete payment');
-        router.push('/auth');
+        // Better user experience for payment authentication
+        if (confirm('You need to log in to complete payment. Would you like to log in now?')) {
+          router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
+        }
         return;
       }
       

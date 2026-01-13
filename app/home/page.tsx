@@ -964,8 +964,9 @@ export default function HomePage() {
                               const token = localStorage.getItem('token');
                               
                               if (!token) {
-                                alert('Please log in to complete payment');
-                                router.push('/auth');
+                                if (confirm('You need to log in to complete payment. Would you like to log in now?')) {
+                                  router.push('/auth?redirect=' + encodeURIComponent('/home'));
+                                }
                                 return;
                               }
                               
