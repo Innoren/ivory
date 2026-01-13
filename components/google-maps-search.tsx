@@ -11,16 +11,23 @@ interface GoogleMapsSearchProps {
   onLocationSelect: (location: string, lat?: number, lng?: number) => void
   placeholder?: string
   className?: string
+  value?: string // Add value prop to sync with parent state
 }
 
 export function GoogleMapsSearch({ 
   onLocationSelect, 
   placeholder = "Search location...",
-  className = ""
+  className = "",
+  value = ""
 }: GoogleMapsSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
-  const [inputValue, setInputValue] = useState("")
+  const [inputValue, setInputValue] = useState(value)
+
+  // Sync with parent value
+  useEffect(() => {
+    setInputValue(value)
+  }, [value])
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -93,7 +100,16 @@ export function GoogleMapsSearch({
         type="text"
         placeholder={placeholder}
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={(e) => {
+          setInputValue(e.target.value)
+          // Call onLocationSelect for manual typing (without coordinates)
+          onLocationSelect(e.target.value)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            onLocationSelect(inputValue)
+          }
+        }}
         className={className}
       />
     </div>

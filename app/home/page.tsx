@@ -16,6 +16,7 @@ import { AnimatedTabs } from "@/components/animated-tabs"
 import { UploadDesignDialog } from "@/components/upload-design-dialog"
 import { ZeroCreditsBanner } from "@/components/zero-credits-banner"
 import CustomerServiceChatbot from "@/components/customer-service-chatbot"
+import { GoogleMapsSearch } from "@/components/google-maps-search"
 
 type NailLook = {
   id: string
@@ -596,13 +597,17 @@ export default function HomePage() {
                     />
                   </div>
                   <div className="relative group">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B6B6B] group-focus-within:text-[#8B7355] transition-colors" />
-                    <Input
+                    <GoogleMapsSearch
                       placeholder="Location..."
                       value={location}
-                      onChange={(e) => setLocation(e.target.value)}
+                      onLocationSelect={(selectedLocation) => {
+                        setLocation(selectedLocation)
+                        // Trigger search automatically when location is selected from autocomplete
+                        if (selectedLocation) {
+                          setTimeout(() => searchTechs(), 100)
+                        }
+                      }}
                       className="pl-10 h-11 sm:h-12 border-[#E8E8E8] bg-white focus:border-[#8B7355] rounded-none text-sm font-light"
-                      onKeyDown={(e) => e.key === 'Enter' && searchTechs()}
                     />
                   </div>
                 </div>
