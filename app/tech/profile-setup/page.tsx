@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { ImageUpload } from "@/components/image-upload"
 import { GoogleMapsSearch } from "@/components/google-maps-search"
-import { ArrowLeft, Plus, X, Loader2, Info, CheckCircle, ExternalLink, Sparkles, Check, Save, Clock } from "lucide-react"
+import { ArrowLeft, Plus, X, Loader2, Info, CheckCircle, Check, Save, Clock } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAutoSave } from "@/hooks/use-auto-save"
 
@@ -28,8 +28,6 @@ export default function TechProfileSetupPage() {
   const [userId, setUserId] = useState<number | null>(null)
   const [businessName, setBusinessName] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [website, setWebsite] = useState("")
-  const [hasIvoryWebsite, setHasIvoryWebsite] = useState(false)
   const [instagramHandle, setInstagramHandle] = useState("")
   const [tiktokHandle, setTiktokHandle] = useState("")
   const [facebookHandle, setFacebookHandle] = useState("")
@@ -57,7 +55,6 @@ export default function TechProfileSetupPage() {
           userId,
           businessName,
           phoneNumber,
-          website: hasIvoryWebsite ? website : '', // Only save Ivory websites
           instagramHandle,
           tiktokHandle,
           facebookHandle,
@@ -101,7 +98,6 @@ export default function TechProfileSetupPage() {
         localStorage.setItem("techProfile", JSON.stringify({
           businessName,
           phoneNumber,
-          website,
           instagramHandle,
           tiktokHandle,
           facebookHandle,
@@ -120,7 +116,6 @@ export default function TechProfileSetupPage() {
       localStorage.setItem("techProfile", JSON.stringify({
         businessName,
         phoneNumber,
-        website,
         instagramHandle,
         tiktokHandle,
         facebookHandle,
@@ -135,7 +130,7 @@ export default function TechProfileSetupPage() {
       throw error
     }
   }, [
-    userId, businessName, phoneNumber, website, hasIvoryWebsite, instagramHandle,
+    userId, businessName, phoneNumber, instagramHandle,
     tiktokHandle, facebookHandle, otherSocialLinks, bio, location, noShowFeeEnabled,
     noShowFeePercent, cancellationWindowHours, services
   ])
@@ -154,11 +149,6 @@ export default function TechProfileSetupPage() {
 
   const setPhoneNumberWithAutoSave = useCallback((value: string) => {
     setPhoneNumber(value)
-    debouncedSave()
-  }, [debouncedSave])
-
-  const setWebsiteWithAutoSave = useCallback((value: string) => {
-    setWebsite(value)
     debouncedSave()
   }, [debouncedSave])
 
@@ -234,7 +224,6 @@ export default function TechProfileSetupPage() {
           if (profile) {
             setBusinessName(profile.businessName || "")
             setPhoneNumber(profile.phoneNumber || "")
-            setWebsite(profile.website || "")
             setInstagramHandle(profile.instagramHandle || "")
             setTiktokHandle(profile.tiktokHandle || "")
             setFacebookHandle(profile.facebookHandle || "")
@@ -245,28 +234,6 @@ export default function TechProfileSetupPage() {
             setNoShowFeePercent(profile.noShowFeePercent?.toString() || "50")
             setCancellationWindowHours(profile.cancellationWindowHours?.toString() || "24")
           }
-        }
-
-        // Check if user has an Ivory website
-        try {
-          const websiteRes = await fetch('/api/websites')
-          if (websiteRes.ok) {
-            const websiteData = await websiteRes.json()
-            if (websiteData) {
-              setHasIvoryWebsite(true)
-              // If they have an Ivory website but no website URL in profile, set it
-              if (!website && websiteData.fullUrl) {
-                setWebsite(`https://${websiteData.fullUrl}`)
-              }
-            }
-          } else if (websiteRes.status === 404) {
-            // API route doesn't exist yet or no website found - this is expected
-            setHasIvoryWebsite(false)
-          }
-        } catch (error) {
-          // Network error or API not available - gracefully handle
-          console.log('Website API not available yet')
-          setHasIvoryWebsite(false)
         }
 
         // Load portfolio images
@@ -423,7 +390,6 @@ export default function TechProfileSetupPage() {
           userId,
           businessName,
           phoneNumber,
-          website: hasIvoryWebsite ? website : '', // Only save Ivory websites
           instagramHandle,
           tiktokHandle,
           facebookHandle,
@@ -444,7 +410,6 @@ export default function TechProfileSetupPage() {
         localStorage.setItem("techProfile", JSON.stringify({
           businessName,
           phoneNumber,
-          website,
           instagramHandle,
           tiktokHandle,
           facebookHandle,
@@ -1019,96 +984,6 @@ export default function TechProfileSetupPage() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Professional Website - Moved to bottom with pulsing animation */}
-          <div className="border border-[#8B7355]/50 hover:border-[#8B7355] transition-all duration-700 p-6 sm:p-8 lg:p-10 relative overflow-hidden">
-            {/* Pulsing background animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#8B7355]/5 via-[#8B7355]/10 to-[#8B7355]/5 animate-pulse" />
-            
-            <div className="relative z-10">
-              <div className="mb-6 sm:mb-8 lg:mb-10">
-                <p className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-2 sm:mb-3 font-light animate-pulse">Section VI • Featured</p>
-                <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-light text-[#1A1A1A] tracking-tight mb-2 leading-[1.1]">
-                  Professional Website
-                </h2>
-                <p className="text-sm sm:text-base text-[#6B6B6B] font-light leading-[1.7] tracking-wide">
-                  Create a professional website to book customers with in seconds
-                </p>
-              </div>
-
-              <div className="border border-[#8B7355]/30 p-4 sm:p-5 bg-gradient-to-br from-[#FAFAF8] to-white">
-                {hasIvoryWebsite ? (
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-[#1A1A1A] mb-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        Your Ivory Website is Ready
-                      </h3>
-                      <p className="text-xs text-[#6B6B6B] font-light leading-relaxed mb-3">
-                        You have a professional website created through Ivory. Manage it, customize it, or view analytics.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button
-                          type="button"
-                          onClick={() => router.push('/tech/website')}
-                          className="h-10 bg-[#8B7355] text-white hover:bg-[#1A1A1A] transition-all duration-300 px-4 text-[10px] tracking-[0.2em] uppercase rounded-none font-light"
-                        >
-                          Manage Website
-                        </Button>
-                        {website && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => window.open(website, '_blank')}
-                            className="h-10 border-[#E8E8E8] hover:border-[#8B7355] hover:bg-transparent text-[#6B6B6B] hover:text-[#8B7355] rounded-none text-[10px] tracking-[0.2em] uppercase font-light"
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            View Live Site
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-[#1A1A1A] mb-2 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-[#8B7355] animate-pulse" />
-                        Create Your Professional Website
-                      </h3>
-                      <p className="text-xs text-[#6B6B6B] font-light leading-relaxed mb-4">
-                        Create a professional website to book customers with in seconds.
-                      </p>
-                      <Button
-                        type="button"
-                        onClick={() => router.push('/tech/website')}
-                        className="h-12 bg-[#8B7355] text-white hover:bg-[#1A1A1A] transition-all duration-500 px-6 text-[11px] tracking-[0.2em] uppercase rounded-none font-light hover:scale-[1.02] active:scale-[0.98] animate-pulse hover:animate-none"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                        Create Website (1 Credit)
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {website && hasIvoryWebsite && (
-                  <div className="mt-4 pt-4 border-t border-[#E8E8E8]">
-                    <p className="text-xs text-[#6B6B6B] font-light mb-1">Your Ivory website:</p>
-                    <div className="flex items-center justify-between gap-2">
-                      <a 
-                        href={website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-[#8B7355] hover:text-[#1A1A1A] transition-colors truncate"
-                      >
-                        {website}
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
