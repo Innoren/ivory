@@ -8,6 +8,7 @@
 import SwiftUI
 import AVKit
 import AVFoundation
+import StoreKit
 
 struct OnboardingVideoView: View {
     @State private var player: AVPlayer?
@@ -230,8 +231,21 @@ struct OnboardingVideoView: View {
         player?.pause()
         player = nil
         
+        // Request App Store rating after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.requestAppStoreRating()
+        }
+        
         // Call completion handler
         onComplete()
+    }
+    
+    private func requestAppStoreRating() {
+        // Request rating from the App Store
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            print("⭐️ Requesting App Store rating")
+            SKStoreReviewController.requestReview(in: windowScene)
+        }
     }
 }
 
