@@ -23,10 +23,10 @@ Visit: https://us.posthog.com
 - This tracks when users come back
 
 **Cohort Period:**
-- Select: `Weekly`
+- Select: `2 weeks` (bi-weekly retention)
 
 **Return Period:**
-- Select: `Weekly`
+- Select: `2 weeks` (bi-weekly retention)
 
 ### 5. Click "Calculate"
 
@@ -35,17 +35,26 @@ Visit: https://us.posthog.com
 You'll see a table like this:
 
 ```
-Week 0: 100% (all users who signed up)
-Week 1: 42%  (users who returned in week 1)
-Week 2: 35%  (users who returned in week 2)
-Week 3: 30%  (users who returned in week 3)
+Period 0: 100% (all users who signed up in that 2-week period)
+Period 1: 45%  (users who returned in weeks 2-3)
+Period 2: 35%  (users who returned in weeks 4-5)
+Period 3: 30%  (users who returned in weeks 6-7)
 ```
 
 ### 7. Save Your Insight (Optional)
 - Click "Save" button
-- Name it: "Weekly New User Retention"
+- Name it: "Bi-Weekly New User Retention"
 - Add to a dashboard if desired
+
+## Alternative Time Periods
+
+PostHog supports multiple retention periods:
+- **Hour** - For high-frequency apps
+- **Day** - Daily retention
+- **Week** - Weekly retention
+- **2 Weeks** - Bi-weekly retention (recommended)
+- **Month** - Monthly retention
 
 ## Done!
 
-You now have weekly retention tracking set up. Check back each week to see how your retention improves!
+You now have bi-weekly retention tracking set up. Check back every 2 weeks to see how your retention improves!
