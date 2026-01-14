@@ -156,6 +156,8 @@ export async function POST(request: Request) {
       avatar: newUser[0].avatar,
       credits: newUser[0].credits,
       referralCode: newUser[0].referralCode,
+      createdAt: newUser[0].createdAt,
+      isNewUser: true, // Flag to trigger PostHog signup tracking on client
     });
   } catch (error) {
     console.error('Signup error:', error);

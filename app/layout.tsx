@@ -7,6 +7,8 @@ import { WatchBridgeInitializer } from "@/components/watch-bridge-initializer"
 import { BackgroundGenerationMonitor } from "@/components/background-generation-monitor"
 import { IAPInitializer } from "@/components/iap-initializer"
 import { NotificationToastProvider } from "@/components/notification-toast"
+import { PostHogProvider } from "@/components/posthog-provider"
+import { PostHogUserProvider } from "@/components/posthog-user-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -56,13 +58,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased touch-manipulation`}>
-        <NotificationToastProvider>
-          <IAPInitializer />
-          <WatchBridgeInitializer />
-          <BackgroundGenerationMonitor />
-          {children}
-          <Toaster />
-        </NotificationToastProvider>
+        <PostHogProvider>
+          <PostHogUserProvider />
+          <NotificationToastProvider>
+            <IAPInitializer />
+            <WatchBridgeInitializer />
+            <BackgroundGenerationMonitor />
+            {children}
+            <Toaster />
+          </NotificationToastProvider>
+        </PostHogProvider>
         <Analytics />
       </body>
     </html>

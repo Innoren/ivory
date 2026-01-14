@@ -11,6 +11,8 @@ import { Capacitor } from "@capacitor/core"
 import { Browser } from "@capacitor/browser"
 import { Haptics, ImpactStyle } from "@capacitor/haptics"
 import { isNativeIOS } from "@/lib/native-bridge"
+import { trackUserSignup } from "@/components/posthog-user-tracker"
+import { posthog } from "@/lib/posthog"
 // import { signInWithAppleNative } from "@/lib/native-apple-auth" // Temporarily disabled - waiting for Capacitor 8 compatible version
 
 // Keyframes for elegant animations
@@ -205,6 +207,11 @@ function AuthPageContent() {
         const user = await response.json()
         localStorage.setItem("ivoryUser", JSON.stringify(user))
         
+        // Track signup in PostHog if this is a new user
+        if (user.isNewUser) {
+          trackUserSignup(user, 'email')
+        }
+        
         // Check if there's a return URL stored
         const returnUrl = localStorage.getItem('returnUrl')
         if (returnUrl) {
@@ -234,6 +241,15 @@ function AuthPageContent() {
         // Also store the token separately for API calls
         if (user.token) {
           localStorage.setItem("token", user.token)
+        }
+        
+        // Identify user in PostHog on login
+        if (user.id) {
+          posthog.identify(user.id.toString(), {
+            email: user.email,
+            username: user.username,
+            userType: user.userType,
+          })
         }
         
         // Check if there's a return URL stored
