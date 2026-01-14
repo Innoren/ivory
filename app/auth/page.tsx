@@ -83,6 +83,16 @@ function AuthPageContent() {
 
   // Check for existing session and referral code on mount
   useEffect(() => {
+    // Debug: Log native detection
+    const isNative = Capacitor.isNativePlatform() || isNativeIOS()
+    console.log('🔍 Auth page - Native detection:', {
+      capacitor: Capacitor.isNativePlatform(),
+      nativeBridge: isNativeIOS(),
+      isNative,
+      hasNativeBridge: typeof window !== 'undefined' && !!(window as any).NativeBridge,
+      hasNativeFlag: typeof window !== 'undefined' && !!(window as any).__isNativeIOS
+    })
+    
     // Get referral code from URL
     const urlParams = new URLSearchParams(window.location.search)
     const refCode = urlParams.get('ref')

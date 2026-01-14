@@ -6,6 +6,8 @@
 // Extend window interface
 declare global {
   interface Window {
+    __isNativeIOS?: boolean;
+    __nativeBridgeReady?: boolean;
     NativeBridge?: NativeBridge;
     webkit?: {
       messageHandlers?: {
@@ -106,7 +108,15 @@ interface LocalNotificationOptions {
  * Check if running in native iOS app
  */
 export function isNativeIOS(): boolean {
-  return typeof window !== 'undefined' && !!window.NativeBridge;
+  if (typeof window === 'undefined') return false;
+  
+  // Check for early native flag (injected at document start)
+  if ((window as any).__isNativeIOS) return true;
+  
+  // Check for NativeBridge object
+  if (window.NativeBridge) return true;
+  
+  return false;
 }
 
 /**
