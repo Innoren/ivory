@@ -245,10 +245,14 @@ function AuthPageContent() {
         
         // Identify user in PostHog on login
         if (user.id) {
+          const isNativeApp = Capacitor.isNativePlatform() || isNativeIOS()
+          const platform = isNativeApp ? 'ios' : 'web'
+          
           posthog.identify(user.id.toString(), {
             email: user.email,
             username: user.username,
             userType: user.userType,
+            platform,
           })
         }
         
