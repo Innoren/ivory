@@ -27,29 +27,6 @@ struct WebView: UIViewRepresentable {
         let contentController = configuration.userContentController
         contentController.add(context.coordinator, name: "nativeHandler")
         
-        // Inject early detection script BEFORE page loads
-        // This ensures window.NativeBridge exists immediately
-        let earlyScript = WKUserScript(
-            source: """
-            // Set a flag that native iOS is present
-            window.__isNativeIOS = true;
-            window.__nativeBridgeReady = false;
-            
-            // Create a minimal bridge object immediately
-            window.NativeBridge = window.NativeBridge || {
-                _pending: true,
-                call: function() {
-                    console.log('NativeBridge not fully initialized yet');
-                }
-            };
-            
-            console.log('✅ Early native iOS detection injected');
-            """,
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: true
-        )
-        contentController.addUserScript(earlyScript)
-        
         // Create webview
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator

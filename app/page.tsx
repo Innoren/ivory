@@ -3,35 +3,15 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Capacitor } from "@capacitor/core"
-import { isNativeIOS } from "@/lib/native-bridge"
 import LandingPage from "@/components/landing-page"
 
 export default function HomePage() {
   const router = useRouter()
+  // Check immediately if native (synchronous) - supports both Capacitor and native bridge
+  const isNativeApp = Capacitor.isNativePlatform() || (typeof window !== 'undefined' && !!(window as any).NativeBridge)
   const [isChecking, setIsChecking] = useState(true)
-  const [isNativeApp, setIsNativeApp] = useState(false)
 
   useEffect(() => {
-    // Check if native platform - do this in useEffect to ensure window is available
-    const checkNative = () => {
-      const isNative = Capacitor.isNativePlatform() || isNativeIOS()
-      setIsNativeApp(isNative)
-      
-      // If native, immediately redirect to auth without checking session
-      if (isNative) {
-        console.log('Native iOS detected - bypassing landing page')
-        router.push('/auth')
-        return true
-      }
-      return false
-    }
-    
-    // Check native first
-    if (checkNative()) {
-      return
-    }
-    
-    // Only check session if not native
     const checkSession = async () => {
       try {
         const response = await fetch('/api/auth/session')
@@ -47,18 +27,26 @@ export default function HomePage() {
           } else {
             router.push('/user-type')
           }
+        } else if (isNativeApp) {
+          // Native iOS app users skip landing page and go directly to auth
+          router.push('/auth')
         } else {
           // Web user without session - show landing page
           setIsChecking(false)
         }
       } catch (error) {
         console.error('Session check error:', error)
-        setIsChecking(false)
+        if (isNativeApp) {
+          // On error in native app, still go to auth
+          router.push('/auth')
+        } else {
+          setIsChecking(false)
+        }
       }
     }
     
     checkSession()
-  }, [router])
+  }, [router, isNativeApp])
 
   // For native app, never show landing page - keep blank screen during redirect
   // For web, show loading until session check completes
