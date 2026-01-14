@@ -66,7 +66,7 @@ export default function SavedDesignDetailPage() {
 
   const handleSendToTech = () => {
     if (!design) return
-    router.push(`/send-to-tech/${design.id}`)
+    router.push(`/share-with-tech/${design.id}`)
   }
 
   const handleShare = async () => {

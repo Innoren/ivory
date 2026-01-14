@@ -153,7 +153,7 @@ export default function SharePage() {
         {/* Page Title */}
         <div className="mb-8 sm:mb-12 text-center">
           <p className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-3 sm:mb-4 font-light">Share Your Design</p>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-tight">Spread the Inspiration</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-tight">Spread the Inspiration ❤️</h1>
         </div>
 
         {/* Design Preview */}

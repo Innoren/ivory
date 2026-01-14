@@ -72,7 +72,7 @@ export default function LookDetailPage() {
   }
 
   const handleSendToTech = () => {
-    router.push(`/send-to-tech/${params.id}`)
+    router.push(`/share-with-tech/${params.id}`)
   }
 
   const handleDelete = async () => {

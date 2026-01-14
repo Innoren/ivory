@@ -71,7 +71,7 @@ export const APP_ROUTES = {
   PROFILE: '/profile',
   LOOK: (id: string | number) => `/look/${id}`,
   SHARE: (id: string | number) => `/share/${id}`,
-  SEND_TO_TECH: (id: string | number) => `/send-to-tech/${id}`,
+  SEND_TO_TECH: (id: string | number) => `/share-with-tech/${id}`,
   TECH: {
     DASHBOARD: '/tech/dashboard',
     PROFILE_SETUP: '/tech/profile-setup',
