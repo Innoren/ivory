@@ -13,10 +13,11 @@ struct ContentView: View {
     @StateObject private var webViewModel = WebViewModel()
     @StateObject private var iapManager = IAPManager.shared
     @StateObject private var watchManager = WatchConnectivityManager.shared
-    @State private var showOnboardingVideo = false
+    @State private var showOnboardingVideo = !OnboardingManager.shared.hasSeenOnboardingVideo
     
     init() {
         print("🎬 ContentView init called")
+        print("🎬 Initial onboarding check: \(!OnboardingManager.shared.hasSeenOnboardingVideo)")
     }
     
     var body: some View {
@@ -60,20 +61,24 @@ struct ContentView: View {
         }
         .onAppear {
             print("🎬 ContentView onAppear called")
+            print("🎬 Current showOnboardingVideo state: \(showOnboardingVideo)")
             
-            // Test if OnboardingManager is accessible
-            do {
-                let hasSeenOnboarding = OnboardingManager.shared.hasSeenOnboardingVideo
-                print("🎬 Onboarding check - hasSeenOnboarding: \(hasSeenOnboarding)")
-                
-                if !hasSeenOnboarding {
-                    print("🎬 First launch detected, showing onboarding video")
+            // Check onboarding status
+            let hasSeenOnboarding = OnboardingManager.shared.hasSeenOnboardingVideo
+            print("🎬 Onboarding check - hasSeenOnboarding: \(hasSeenOnboarding)")
+            
+            // Check UserDefaults directly for debugging
+            let rawValue = UserDefaults.standard.object(forKey: "hasSeenOnboardingVideo")
+            print("🎬 Raw UserDefaults value for hasSeenOnboardingVideo: \(String(describing: rawValue))")
+            
+            if !hasSeenOnboarding {
+                print("🎬 First launch detected, showing onboarding video")
+                DispatchQueue.main.async {
                     showOnboardingVideo = true
-                } else {
-                    print("🎬 User has seen onboarding, skipping video")
+                    print("🎬 showOnboardingVideo set to: \(showOnboardingVideo)")
                 }
-            } catch {
-                print("❌ Error accessing OnboardingManager: \(error)")
+            } else {
+                print("🎬 User has seen onboarding, skipping video")
             }
             
             // Initialize managers
