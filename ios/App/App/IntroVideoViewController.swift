@@ -12,7 +12,7 @@ class IntroVideoViewController: AVPlayerViewController {
         
         // Configure player view controller
         showsPlaybackControls = false
-        videoGravity = .resizeAspectFill
+        videoGravity = .resizeAspect
         view.backgroundColor = .black
         
         // Get video from bundle
