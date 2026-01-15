@@ -8,6 +8,7 @@ import { ArrowLeft, Clock, CheckCircle2, Loader2, Sparkles, MapPin, Star, Info }
 import { BottomNav } from '@/components/bottom-nav';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { isNativeIOS } from '@/lib/native-bridge';
 
 const CONVENIENCE_FEE_PERCENT = 0.15; // 15% convenience fee
 
@@ -308,8 +309,8 @@ export default function BookAppointmentPage() {
   return (
     <div className="min-h-screen min-h-[100dvh] bg-[#F8F7F5] pb-40 lg:pb-28">
       {/* Header - iOS Native Style */}
-      <header className="bg-white/95 backdrop-blur-xl border-b border-[#E8E8E8]/80 sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
-        <div className="max-w-2xl mx-auto px-4 py-3">
+      <header className={`bg-white/95 backdrop-blur-xl border-b border-[#E8E8E8]/80 sticky top-0 z-50 ${isNativeIOS() ? 'pt-[60px]' : 'pt-[env(safe-area-inset-top)]'}`}>
+        <div className={`max-w-2xl mx-auto px-4 py-3 ${isNativeIOS() ? 'pt-6' : ''}`}>
           <div className="flex items-center gap-3">
             <button 
               onClick={() => {
