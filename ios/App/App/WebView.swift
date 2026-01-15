@@ -71,7 +71,7 @@ struct WebView: UIViewRepresentable {
             }
             parent.viewModel.injectBridge()
             
-            // Inject safe area information and CSS
+            // Inject safe area information and CSS for ALL pages (including external like Stripe)
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let window = windowScene.windows.first {
                 let safeAreaInsets = window.safeAreaInsets
@@ -83,8 +83,14 @@ struct WebView: UIViewRepresentable {
                     right: \(safeAreaInsets.right)
                 };
                 
-                // Add CSS for safe area handling
+                // Add CSS for safe area handling - applies to ALL pages including external
                 const style = document.createElement('style');
+                style.id = 'ios-safe-area-style';
+                
+                // Remove existing style if present (for page reloads)
+                const existingStyle = document.getElementById('ios-safe-area-style');
+                if (existingStyle) existingStyle.remove();
+                
                 style.textContent = `
                     :root {
                         --safe-area-inset-top: \(safeAreaInsets.top)px;
@@ -93,15 +99,25 @@ struct WebView: UIViewRepresentable {
                         --safe-area-inset-right: \(safeAreaInsets.right)px;
                     }
                     
-                    /* Don't add body padding - let CSS handle it with pt-safe class */
+                    /* Add padding to body for external pages (like Stripe checkout) */
+                    body {
+                        padding-top: \(safeAreaInsets.top)px !important;
+                    }
+                    
+                    /* Don't double-pad our own app pages that handle safe area themselves */
                     body.ios-native {
-                        /* Remove padding to prevent double safe area */
+                        padding-top: 0 !important;
                     }
                 `;
                 document.head.appendChild(style);
                 
-                // Add iOS native class to body
-                document.body.classList.add('ios-native');
+                // Add iOS native class to body ONLY for our app pages
+                const isOurApp = window.location.hostname.includes('localhost') || 
+                                 window.location.hostname.includes('vercel.app') ||
+                                 window.location.hostname.includes('ivory');
+                if (isOurApp) {
+                    document.body.classList.add('ios-native');
+                }
                 
                 // Dispatch event to notify web app about safe areas
                 window.dispatchEvent(new CustomEvent('iosSafeAreaUpdated', {
