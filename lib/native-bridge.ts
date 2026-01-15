@@ -42,6 +42,7 @@ interface NativeBridge {
   getCameraPermissionStatus: () => Promise<{ authorized: boolean }>;
   requestPhotosPermission: () => Promise<{ granted: boolean }>;
   getPhotosPermissionStatus: () => Promise<{ authorized: boolean }>;
+  requestReview: () => Promise<{ success: boolean }>;
   onEvent?: (event: string, data: any) => void;
 }
 
@@ -411,6 +412,17 @@ export async function getPhotosPermissionStatus(): Promise<{ authorized: boolean
     return { authorized: true };
   }
   return bridge.getPhotosPermissionStatus();
+}
+
+/**
+ * Request App Store Rating
+ */
+export async function requestReview(): Promise<{ success: boolean }> {
+  const bridge = getNativeBridge();
+  if (!bridge) {
+    return { success: false };
+  }
+  return bridge.requestReview();
 }
 
 export type { LocalNotificationOptions };

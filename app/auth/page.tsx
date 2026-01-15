@@ -83,6 +83,14 @@ function AuthPageContent() {
 
   // Check for existing session and referral code on mount
   useEffect(() => {
+    // TESTING MODE: Don't check session if we just came from video
+    const skipSessionCheck = sessionStorage.getItem('videoTestingMode')
+    if (skipSessionCheck) {
+      sessionStorage.removeItem('videoTestingMode')
+      setIsChecking(false)
+      return
+    }
+    
     // Get referral code from URL
     const urlParams = new URLSearchParams(window.location.search)
     const refCode = urlParams.get('ref')

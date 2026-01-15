@@ -285,6 +285,17 @@ class WebViewModel: ObservableObject {
                     
                     this.call('forceShowOnboarding', { callbackId });
                 });
+            },
+            
+            // Rating Methods
+            requestReview: function() {
+                return new Promise((resolve, reject) => {
+                    window._nativeCallbacks = window._nativeCallbacks || {};
+                    const callbackId = this._generateCallbackId();
+                    window._nativeCallbacks[callbackId] = { resolve, reject };
+                    
+                    this.call('requestReview', { callbackId });
+                });
             }
         };
         
@@ -410,6 +421,11 @@ class WebViewModel: ObservableObject {
         
         messageHandlers["getDeviceToken"] = { [weak self] data in
             NotificationManager.shared.getDeviceToken(data: data, viewModel: self)
+        }
+        
+        // Rating handlers
+        messageHandlers["requestReview"] = { [weak self] data in
+            RatingManager.shared.requestReview(data: data, viewModel: self)
         }
     }
     

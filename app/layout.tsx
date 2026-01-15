@@ -9,6 +9,7 @@ import { IAPInitializer } from "@/components/iap-initializer"
 import { NotificationToastProvider } from "@/components/notification-toast"
 import { PostHogProvider } from "@/components/posthog-provider"
 import { PostHogUserProvider } from "@/components/posthog-user-provider"
+import { FirstLaunchVideo } from "@/components/first-launch-video"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -61,6 +62,7 @@ export default function RootLayout({
         <PostHogProvider>
           <PostHogUserProvider />
           <NotificationToastProvider>
+            <FirstLaunchVideo />
             <IAPInitializer />
             <WatchBridgeInitializer />
             <BackgroundGenerationMonitor />
