@@ -27,21 +27,13 @@ export default function HomePage() {
           } else {
             router.push('/user-type')
           }
-        } else if (isNativeApp) {
-          // Native iOS app users skip landing page and go directly to auth
-          router.push('/auth')
         } else {
           // Web user without session - show landing page
           setIsChecking(false)
         }
       } catch (error) {
         console.error('Session check error:', error)
-        if (isNativeApp) {
-          // On error in native app, still go to auth
-          router.push('/auth')
-        } else {
-          setIsChecking(false)
-        }
+        setIsChecking(false)
       }
     }
     
