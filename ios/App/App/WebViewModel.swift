@@ -411,30 +411,6 @@ class WebViewModel: ObservableObject {
         messageHandlers["getDeviceToken"] = { [weak self] data in
             NotificationManager.shared.getDeviceToken(data: data, viewModel: self)
         }
-        
-        // Onboarding handlers
-        messageHandlers["resetOnboarding"] = { [weak self] data in
-            OnboardingManager.shared.resetOnboarding()
-            if let callbackId = data["callbackId"] {
-                self?.resolveCallback(callbackId: callbackId, result: ["success": true])
-            }
-        }
-        
-        // Debug: Force show onboarding
-        messageHandlers["forceShowOnboarding"] = { [weak self] data in
-            OnboardingManager.shared.resetOnboarding()
-            // Trigger app restart or reload
-            DispatchQueue.main.async {
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let window = windowScene.windows.first {
-                    // This will trigger ContentView to re-evaluate onboarding state
-                    window.rootViewController?.viewDidLoad()
-                }
-            }
-            if let callbackId = data["callbackId"] {
-                self?.resolveCallback(callbackId: callbackId, result: ["success": true])
-            }
-        }
     }
     
     func handleMessage(action: String, data: [String: Any]) {
