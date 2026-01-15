@@ -3130,8 +3130,8 @@ export default function CapturePage() {
         )}
 
         {/* Elegant Top Bar */}
-        <div className={`absolute top-0 left-0 right-0 px-4 sm:px-6 pb-5 z-10 bg-gradient-to-b from-black/60 via-black/30 to-transparent backdrop-blur-sm ${isNativeIOS() ? 'pt-safe-extra' : 'pt-safe'}`}>
-          <div className={`flex items-center justify-between mb-4 ${isNativeIOS() ? 'pt-4' : 'pt-3'}`}>
+        <div className={`absolute top-0 left-0 right-0 px-4 sm:px-6 pb-5 z-10 bg-gradient-to-b from-black/60 via-black/30 to-transparent backdrop-blur-sm ${isNativeIOS() ? 'pt-[60px]' : 'pt-safe'}`}>
+          <div className={`flex items-center justify-between mb-4 ${isNativeIOS() ? 'pt-8' : 'pt-3'}`}>
             <button
               onClick={() => {
                 // If we have a saved image (user is in replace mode), restore it
