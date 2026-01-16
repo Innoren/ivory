@@ -86,27 +86,31 @@ class CameraManager: NSObject, ObservableObject {
         os_log("🔵 Taking picture with source: %@", log: logger, type: .info, source)
         
         DispatchQueue.main.async {
-            let picker = UIImagePickerController()
-            picker.delegate = self
-            picker.allowsEditing = options["allowEditing"] as? Bool ?? false
-            
             if source == "camera" {
-                picker.sourceType = .camera
+                // Use custom camera with overlay
+                self.presentCustomCamera(callbackId: callbackId, viewModel: viewModel)
             } else if source == "photos" {
+                // Use photo library picker
+                let picker = UIImagePickerController()
+                picker.delegate = self
                 picker.sourceType = .photoLibrary
+                picker.allowsEditing = options["allowEditing"] as? Bool ?? false
+                self.presentPicker(picker, callbackId: callbackId, viewModel: viewModel)
             } else {
                 // Show action sheet
                 let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
                 
                 if UIImagePickerController.isSourceTypeAvailable(.camera) {
                     alert.addAction(UIAlertAction(title: "Take Photo", style: .default) { _ in
-                        picker.sourceType = .camera
-                        self.presentPicker(picker, callbackId: callbackId, viewModel: viewModel)
+                        self.presentCustomCamera(callbackId: callbackId, viewModel: viewModel)
                     })
                 }
                 
                 alert.addAction(UIAlertAction(title: "Choose from Library", style: .default) { _ in
+                    let picker = UIImagePickerController()
+                    picker.delegate = self
                     picker.sourceType = .photoLibrary
+                    picker.allowsEditing = options["allowEditing"] as? Bool ?? false
                     self.presentPicker(picker, callbackId: callbackId, viewModel: viewModel)
                 })
                 
@@ -120,8 +124,36 @@ class CameraManager: NSObject, ObservableObject {
                 }
                 return
             }
+        }
+    }
+    
+    private func presentCustomCamera(callbackId: Any, viewModel: WebViewModel?) {
+        let cameraVC = CameraOverlayViewController()
+        cameraVC.modalPresentationStyle = .fullScreen
+        
+        cameraVC.onImageCaptured = { [weak self] image in
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+                viewModel?.resolveCallback(callbackId: callbackId, error: "Failed to process image")
+                return
+            }
             
-            self.presentPicker(picker, callbackId: callbackId, viewModel: viewModel)
+            let base64String = imageData.base64EncodedString()
+            
+            os_log("✅ Image captured with overlay (%d bytes)", log: self?.logger ?? OSLog.default, type: .info, imageData.count)
+            
+            viewModel?.resolveCallback(callbackId: callbackId, result: [
+                "dataUrl": "data:image/jpeg;base64,\(base64String)",
+                "format": "jpeg"
+            ])
+        }
+        
+        cameraVC.onCancel = {
+            viewModel?.resolveCallback(callbackId: callbackId, error: "User cancelled")
+        }
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            rootViewController.present(cameraVC, animated: true)
         }
     }
     

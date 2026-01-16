@@ -26,6 +26,7 @@
 		037F54EA2F1892A0006B58AC /* RatingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037F54E92F1892A0006B58AC /* RatingPlugin.swift */; };
 		03A334C92F08D1C500684786 /* IAPPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A334C82F08D1C500684786 /* IAPPlugin.swift */; };
 		03A3CF4D2F00E7DA00EF5B32 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A3CF4C2F00E7DA00EF5B32 /* StoreKit.framework */; };
+		03AC73292F1A867000BD7C53 /* CameraOverlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AC73282F1A867000BD7C53 /* CameraOverlayViewController.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -80,6 +81,7 @@
 		037F54E92F1892A0006B58AC /* RatingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPlugin.swift; sourceTree = "<group>"; };
 		03A334C82F08D1C500684786 /* IAPPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPPlugin.swift; sourceTree = "<group>"; };
 		03A3CF4C2F00E7DA00EF5B32 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		03AC73282F1A867000BD7C53 /* CameraOverlayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlayViewController.swift; sourceTree = "<group>"; };
 		03B2F10E2F15AA4E0048E42D /* AppDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AppDebug.entitlements; sourceTree = "<group>"; };
 		03D852062EF0FFF10040F36B /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				037B972B2F10B6C5005FF62D /* CameraManager.swift */,
+				03AC73282F1A867000BD7C53 /* CameraOverlayViewController.swift */,
 				037B972C2F10B6C5005FF62D /* ContentView.swift */,
 				037B972D2F10B6C5005FF62D /* DeviceInfoManager.swift */,
 				037B972E2F10B6C5005FF62D /* HapticsManager.swift */,
@@ -306,6 +309,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				03A334C92F08D1C500684786 /* IAPPlugin.swift in Sources */,
+				03AC73292F1A867000BD7C53 /* CameraOverlayViewController.swift in Sources */,
 				037B97362F10B6C5005FF62D /* NotificationManager.swift in Sources */,
 				037B97372F10B6C5005FF62D /* ContentView.swift in Sources */,
 				037B97382F10B6C5005FF62D /* DeviceInfoManager.swift in Sources */,
@@ -560,7 +564,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/AppDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = B46X894ZHC;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ivorys Choice";
@@ -570,7 +574,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 5.3;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivory.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -586,7 +590,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = B46X894ZHC;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ivorys Choice";
@@ -596,7 +600,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivory.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
