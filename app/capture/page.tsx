@@ -2075,17 +2075,17 @@ export default function CapturePage() {
             {/* Original Image Card - Full Width */}
             <div className="relative overflow-hidden border border-[#E8E8E8]/50 group flex-1 bg-white shadow-sm hover:shadow-lg transition-all duration-700 rounded-sm animate-fade-in">
               <div
-                onClick={!isNative() ? handleOpenDrawingCanvas : undefined}
-                className={`relative bg-gradient-to-br from-[#F8F7F5] to-white h-full w-full ${!isNative() ? 'cursor-pointer' : ''}`}
-                role={!isNative() ? "button" : undefined}
-                tabIndex={!isNative() ? 0 : undefined}
-                onKeyDown={!isNative() ? (e) => {
+                onClick={handleOpenDrawingCanvas}
+                className="relative bg-gradient-to-br from-[#F8F7F5] to-white h-full w-full cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     handleOpenDrawingCanvas()
                   }
-                } : undefined}
-                title={!isNative() ? "Click to draw on image" : undefined}
+                }}
+                title="Click to draw on image"
               >
                 {/* Show loading GIF when generating, empty state when no image, otherwise show original image */}
                 {isGenerating ? (
@@ -3022,8 +3022,8 @@ export default function CapturePage() {
           credits={credits}
         />
 
-        {/* Drawing Canvas Modal - Hidden on native iOS */}
-        {!isNative() && showDrawingCanvas && compositeImageForEditing && (
+        {/* Drawing Canvas Modal - Now available on native iOS */}
+        {showDrawingCanvas && compositeImageForEditing && (
           <DrawingCanvas
             imageUrl={compositeImageForEditing}
             onSave={handleDrawingComplete}
