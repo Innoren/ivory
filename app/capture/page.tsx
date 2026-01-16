@@ -856,8 +856,52 @@ export default function CapturePage() {
   }, [facingMode])
 
   const capturePhoto = async () => {
-    // Use web camera implementation for all platforms (including native iOS)
-    // Native iOS permissions are handled in startCamera()
+    // Use native iOS camera with ref2 overlay on iOS
+    if (isNativeIOS()) {
+      try {
+        console.log('📸 Using native iOS camera with ref2 overlay')
+        const result = await takePicture({ source: 'camera' })
+        
+        if (result.dataUrl) {
+          // Upload the captured image
+          try {
+            const response = await fetch(result.dataUrl)
+            const blob = await response.blob()
+            const formData = new FormData()
+            formData.append('file', blob, 'photo.jpg')
+            formData.append('type', 'image')
+
+            const uploadResponse = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData
+            })
+
+            if (uploadResponse.ok) {
+              const { url } = await uploadResponse.json()
+              setCapturedImage(url)
+              setSavedImageBeforeReplace(null)
+              console.log('✅ Native iOS photo uploaded successfully')
+            } else {
+              setCapturedImage(result.dataUrl)
+              setSavedImageBeforeReplace(null)
+              console.log('✅ Native iOS photo saved as data URL')
+            }
+          } catch (uploadError) {
+            console.error('Photo upload error:', uploadError)
+            setCapturedImage(result.dataUrl)
+            setSavedImageBeforeReplace(null)
+          }
+        }
+      } catch (error) {
+        console.error('Native camera error:', error)
+        toast.error('Camera error', {
+          description: 'Failed to capture photo. Please try again.',
+        })
+      }
+      return
+    }
+    
+    // Use web camera implementation for non-native platforms
     if (videoRef.current) {
       const canvas = document.createElement("canvas")
       canvas.width = videoRef.current.videoWidth
@@ -983,8 +1027,10 @@ export default function CapturePage() {
       setPendingGenerationSettings(null)
     }
     
-    // Complete onboarding when user confirms generation (step 13, index 12)
-    if (shouldShowOnboarding && onboardingStep === 12) {
+    // Complete onboarding when user confirms generation
+    // Web: step 12 (index 12), Native: step 9 (index 9)
+    const finalStepIndex = isNative() ? 9 : 12
+    if (shouldShowOnboarding && onboardingStep === finalStepIndex) {
       completeOnboarding()
     }
   }
@@ -1190,83 +1236,100 @@ export default function CapturePage() {
   }, [designSettings])
 
   // Auto-advance onboarding when photo is captured (step 1 -> step 2)
+  // On native iOS, skip step 0 (capture) and start at step 1 (open upload drawer)
   useEffect(() => {
-    console.log('🔍 Photo captured check:', { shouldShowOnboarding, onboardingStep, hasCapturedImage: !!capturedImage })
+    console.log('🔍 Photo captured check:', { shouldShowOnboarding, onboardingStep, hasCapturedImage: !!capturedImage, isNative: isNative() })
     
-    if (shouldShowOnboarding && onboardingStep === 0 && capturedImage) {
-      // User captured a photo, advance to step 2 (open upload drawer)
-      console.log('✅ Advancing from step 1 to step 2 (open upload drawer)')
+    // On native iOS, step 0 doesn't exist, so check for step 0 on web only
+    if (shouldShowOnboarding && onboardingStep === 0 && capturedImage && !isNative()) {
+      // User captured a photo, advance to step 1 (open upload drawer)
+      console.log('✅ Advancing from step 0 to step 1 (open upload drawer)')
       setTimeout(() => {
         setOnboardingStep(1)
       }, 1000) // Wait for transition to design view
     }
   }, [capturedImage, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when upload drawer opens (step 2 -> step 3)
+  // Auto-advance onboarding when upload drawer opens (step 1 -> step 2 on web, step 0 -> step 1 on native)
   useEffect(() => {
+    const expectedStep = isNative() ? 0 : 1
     console.log('🔍 Drawer state changed:', { 
       shouldShowOnboarding, 
       onboardingStep, 
       isUploadDrawerOpen,
-      willAdvance: shouldShowOnboarding && onboardingStep === 1 && isUploadDrawerOpen
+      expectedStep,
+      willAdvance: shouldShowOnboarding && onboardingStep === expectedStep && isUploadDrawerOpen
     })
     
-    if (shouldShowOnboarding && onboardingStep === 1 && isUploadDrawerOpen) {
-      // User opened upload drawer, advance to step 3 (upload button step) after drawer animation completes
-      console.log('✅ Advancing from step 2 to step 3 (upload button)')
+    if (shouldShowOnboarding && onboardingStep === expectedStep && isUploadDrawerOpen) {
+      // User opened upload drawer, advance to next step (upload button step) after drawer animation completes
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (upload button)`)
       setTimeout(() => {
-        console.log('✅ Setting onboarding step to 2')
-        setOnboardingStep(2)
+        console.log(`✅ Setting onboarding step to ${expectedStep + 1}`)
+        setOnboardingStep(expectedStep + 1)
       }, 1200) // Increased delay to ensure drawer is fully open and button is rendered
     }
   }, [isUploadDrawerOpen, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when design image is uploaded (step 3 -> step 4)
+  // Auto-advance onboarding when design image is uploaded (step 2 -> step 3 on web, step 1 -> step 2 on native)
   useEffect(() => {
-    console.log('🔍 Design images changed:', { shouldShowOnboarding, onboardingStep, selectedDesignImagesCount: selectedDesignImages.length })
+    const expectedStep = isNative() ? 1 : 2
+    console.log('🔍 Design images changed:', { shouldShowOnboarding, onboardingStep, selectedDesignImagesCount: selectedDesignImages.length, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 2 && selectedDesignImages.length > 0) {
-      // User uploaded a design image, advance to step 4 (close drawer step) after showing success
-      console.log('✅ Advancing from step 3 to step 4 (close drawer)')
+    if (shouldShowOnboarding && onboardingStep === expectedStep && selectedDesignImages.length > 0) {
+      // User uploaded a design image, advance to next step (close drawer step) after showing success
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (close drawer)`)
       setTimeout(() => {
-        setOnboardingStep(3)
+        setOnboardingStep(expectedStep + 1)
       }, 1500) // Wait for success banner to be visible
     }
   }, [selectedDesignImages, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when upload drawer closes (step 4 -> step 5)
+  // Auto-advance onboarding when upload drawer closes (step 3 -> step 4 on web, step 2 -> step 3 on native)
   useEffect(() => {
-    console.log('🔍 Upload drawer closed check:', { shouldShowOnboarding, onboardingStep, isUploadDrawerOpen, hasDesignImages: selectedDesignImages.length > 0 })
+    const expectedStep = isNative() ? 2 : 3
+    const nextStep = isNative() ? 3 : 4
+    console.log('🔍 Upload drawer closed check:', { shouldShowOnboarding, onboardingStep, isUploadDrawerOpen, hasDesignImages: selectedDesignImages.length > 0, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 3 && !isUploadDrawerOpen && selectedDesignImages.length > 0) {
-      // User closed the upload drawer after uploading, advance to step 5 (drawing canvas)
-      console.log('✅ Advancing from step 4 to step 5 (drawing canvas)')
+    if (shouldShowOnboarding && onboardingStep === expectedStep && !isUploadDrawerOpen && selectedDesignImages.length > 0) {
+      // User closed the upload drawer after uploading, advance to next step (drawing canvas on web, nail shape on native)
+      console.log(`✅ Advancing from step ${expectedStep} to step ${nextStep} (${isNative() ? 'nail shape' : 'drawing canvas'})`)
       setTimeout(() => {
-        setOnboardingStep(4)
+        setOnboardingStep(nextStep)
+        // On native, skip drawing canvas and go straight to nail shape
+        if (isNative()) {
+          setIsDrawerOpen(true)
+        }
       }, 500) // Wait for drawer close animation
     }
   }, [isUploadDrawerOpen, shouldShowOnboarding, onboardingStep, selectedDesignImages])
 
-  // Auto-advance onboarding when drawing canvas opens (step 5 -> step 6)
+  // Auto-advance onboarding when drawing canvas opens (web only - step 4 -> step 5)
   useEffect(() => {
+    // Drawing canvas is only available on web, not native
+    if (isNative()) return
+    
     console.log('🔍 Drawing canvas opened check:', { shouldShowOnboarding, onboardingStep, showDrawingCanvas })
     
     if (shouldShowOnboarding && onboardingStep === 4 && showDrawingCanvas) {
-      // User opened drawing canvas, advance to step 6 (close canvas step) after a moment
-      console.log('✅ Advancing from step 5 to step 6 (close canvas) - canvas opened')
+      // User opened drawing canvas, advance to step 5 (close canvas step) after a moment
+      console.log('✅ Advancing from step 4 to step 5 (close canvas) - canvas opened')
       setTimeout(() => {
         setOnboardingStep(5)
       }, 1000) // Give them a moment to see the canvas
     }
   }, [showDrawingCanvas, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when drawing canvas is closed (step 6 -> step 7)
+  // Auto-advance onboarding when drawing canvas is closed (web only - step 5 -> step 6)
   useEffect(() => {
+    // Drawing canvas is only available on web, not native
+    if (isNative()) return
+    
     console.log('🔍 Drawing canvas closed check:', { shouldShowOnboarding, onboardingStep, showDrawingCanvas })
     
     if (shouldShowOnboarding && onboardingStep === 5 && !showDrawingCanvas) {
-      // User closed drawing canvas, advance to step 7 (nail shape)
-      console.log('✅ Advancing from step 6 to step 7 (nail shape)')
+      // User closed drawing canvas, advance to step 6 (nail shape)
+      console.log('✅ Advancing from step 5 to step 6 (nail shape)')
       setTimeout(() => {
         setOnboardingStep(6)
         // Auto-open the drawer so nail shape option is visible
@@ -1275,82 +1338,94 @@ export default function CapturePage() {
     }
   }, [showDrawingCanvas, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when nail shape section opens (step 7 -> step 8)
+  // Auto-advance onboarding when nail shape section opens
+  // Web: step 6 -> step 7, Native: step 3 -> step 4
   useEffect(() => {
-    console.log('🔍 Nail shape section check:', { shouldShowOnboarding, onboardingStep, expandedSection })
+    const expectedStep = isNative() ? 3 : 6
+    console.log('🔍 Nail shape section check:', { shouldShowOnboarding, onboardingStep, expandedSection, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 6 && expandedSection === 'shape') {
-      // User opened nail shape section, advance to step 8 (select shape from slider)
-      console.log('✅ Advancing from step 7 to step 8 (nail shape slider)')
+    if (shouldShowOnboarding && onboardingStep === expectedStep && expandedSection === 'shape') {
+      // User opened nail shape section, advance to next step (select shape from slider)
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (nail shape slider)`)
       setTimeout(() => {
-        setOnboardingStep(7)
+        setOnboardingStep(expectedStep + 1)
       }, 500)
     }
   }, [expandedSection, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when nail shape is selected (step 8 -> step 9)
+  // Auto-advance onboarding when nail shape is selected
+  // Web: step 7 -> step 8, Native: step 4 -> step 5
   useEffect(() => {
-    console.log('🔍 Nail shape selection check:', { shouldShowOnboarding, onboardingStep, nailShape: designSettings.nailShape })
+    const expectedStep = isNative() ? 4 : 7
+    console.log('🔍 Nail shape selection check:', { shouldShowOnboarding, onboardingStep, nailShape: designSettings.nailShape, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 7) {
+    if (shouldShowOnboarding && onboardingStep === expectedStep) {
       // User selected a nail shape (changed from default 'oval'), advance to next step
       if (designSettings.nailShape !== 'oval') {
-        console.log('✅ Advancing from step 8 to step 9 (close design drawer) - nail shape selected')
+        console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (close design drawer) - nail shape selected`)
         setTimeout(() => {
-          setOnboardingStep(8)
+          setOnboardingStep(expectedStep + 1)
         }, 500)
       }
     }
   }, [designSettings.nailShape, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when design drawer closes (step 9 -> step 10)
+  // Auto-advance onboarding when design drawer closes
+  // Web: step 8 -> step 9, Native: step 5 -> step 6
   useEffect(() => {
-    console.log('🔍 Design drawer closed check:', { shouldShowOnboarding, onboardingStep, isDrawerOpen })
+    const expectedStep = isNative() ? 5 : 8
+    console.log('🔍 Design drawer closed check:', { shouldShowOnboarding, onboardingStep, isDrawerOpen, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 8 && !isDrawerOpen) {
+    if (shouldShowOnboarding && onboardingStep === expectedStep && !isDrawerOpen) {
       // User closed the design drawer, advance to next step
-      console.log('✅ Advancing from step 9 to step 10 (replace photo)')
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (replace photo)`)
       setTimeout(() => {
-        setOnboardingStep(9)
+        setOnboardingStep(expectedStep + 1)
       }, 500)
     }
   }, [isDrawerOpen, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when replace button is clicked and camera opens (step 10 -> step 11)
+  // Auto-advance onboarding when replace button is clicked and camera opens
+  // Web: step 9 -> step 10, Native: step 6 -> step 7
   useEffect(() => {
-    console.log('🔍 Camera opened for replace check:', { shouldShowOnboarding, onboardingStep, capturedImage })
+    const expectedStep = isNative() ? 6 : 9
+    console.log('🔍 Camera opened for replace check:', { shouldShowOnboarding, onboardingStep, capturedImage, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 9 && !capturedImage) {
+    if (shouldShowOnboarding && onboardingStep === expectedStep && !capturedImage) {
       // User clicked replace and camera opened (capturedImage is null), advance to close camera step
-      console.log('✅ Advancing from step 10 to step 11 (close camera)')
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (close camera)`)
       setTimeout(() => {
-        setOnboardingStep(10)
+        setOnboardingStep(expectedStep + 1)
       }, 800)
     }
   }, [capturedImage, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when camera closes after replace (step 11 -> step 12)
+  // Auto-advance onboarding when camera closes after replace
+  // Web: step 10 -> step 11, Native: step 7 -> step 8
   useEffect(() => {
-    console.log('🔍 Camera closed after replace check:', { shouldShowOnboarding, onboardingStep, capturedImage })
+    const expectedStep = isNative() ? 7 : 10
+    console.log('🔍 Camera closed after replace check:', { shouldShowOnboarding, onboardingStep, capturedImage, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 10 && capturedImage) {
+    if (shouldShowOnboarding && onboardingStep === expectedStep && capturedImage) {
       // User closed camera and has image again, advance to visualize step
-      console.log('✅ Advancing from step 11 to step 12 (visualize)')
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (visualize)`)
       setTimeout(() => {
-        setOnboardingStep(11)
+        setOnboardingStep(expectedStep + 1)
       }, 500)
     }
   }, [capturedImage, shouldShowOnboarding, onboardingStep])
 
-  // Auto-advance onboarding when confirmation dialog opens (step 12 -> step 13)
+  // Auto-advance onboarding when confirmation dialog opens
+  // Web: step 11 -> step 12, Native: step 8 -> step 9
   useEffect(() => {
-    console.log('🔍 Confirmation dialog check:', { shouldShowOnboarding, onboardingStep, showConfirmDialog })
+    const expectedStep = isNative() ? 8 : 11
+    console.log('🔍 Confirmation dialog check:', { shouldShowOnboarding, onboardingStep, showConfirmDialog, expectedStep })
     
-    if (shouldShowOnboarding && onboardingStep === 11 && showConfirmDialog) {
+    if (shouldShowOnboarding && onboardingStep === expectedStep && showConfirmDialog) {
       // User clicked visualize and dialog opened, advance to final step
-      console.log('✅ Advancing from step 12 to step 13 (confirm generation)')
+      console.log(`✅ Advancing from step ${expectedStep} to step ${expectedStep + 1} (confirm generation)`)
       setTimeout(() => {
-        setOnboardingStep(12)
+        setOnboardingStep(expectedStep + 1)
       }, 500)
     }
   }, [showConfirmDialog, shouldShowOnboarding, onboardingStep])

@@ -15,14 +15,17 @@ type OnboardingStep = {
 }
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
-  {
-    id: 'capture',
-    title: 'Take a Photo',
-    description: 'Capture or upload a photo of your hand in good lighting for best results',
-    targetElement: 'capture-button',
-    position: 'top',
-    action: 'Tap the camera button'
-  },
+  // Skip capture step on native iOS - native camera is used automatically
+  ...(!isNative() ? [
+    {
+      id: 'capture',
+      title: 'Take a Photo',
+      description: 'Capture or upload a photo of your hand in good lighting for best results',
+      targetElement: 'capture-button',
+      position: 'top' as const,
+      action: 'Tap the camera button'
+    }
+  ] as OnboardingStep[] : []),
   {
     id: 'open-upload-drawer',
     title: 'Open Upload Drawer',
