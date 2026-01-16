@@ -100,7 +100,6 @@ export default function CapturePage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [showZoomIndicator, setShowZoomIndicator] = useState(false)
-  const [handReference, setHandReference] = useState<1 | 2 | 3>(1)
   const [designMode, setDesignMode] = useState<DesignMode>(null)
   const [aiPrompt, setAiPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -563,9 +562,6 @@ export default function CapturePage() {
           
           if (metadata.influenceWeights) {
             setInfluenceWeights(metadata.influenceWeights)
-          }
-          if (metadata.handReference) {
-            setHandReference(metadata.handReference)
           }
           if (metadata.designMode) {
             setDesignMode(metadata.designMode)
@@ -1533,7 +1529,6 @@ export default function CapturePage() {
           drawingImageUrl,
           aiPrompt: aiPrompt || null,
           influenceWeights,
-          handReference,
           designMode,
           colorLightness,
         }
@@ -1681,38 +1676,48 @@ export default function CapturePage() {
       setSavedImageBeforeReplace(capturedImage)
     }
     
-    // On native iOS, use hybrid approach: native permissions + web camera UI
+    // On native iOS, use native camera directly (no web camera)
     if (isNativeIOS()) {
       try {
-        console.log('Native iOS detected - requesting native camera permissions for replace...')
+        console.log('Native iOS detected - using native camera for replace...')
         
-        // Check current permission status
-        const permissionStatus = await getCameraPermissionStatus()
-        console.log('Native camera permission status for replace:', permissionStatus.authorized)
+        // Use native camera to take photo
+        const photo = await takePicture({ 
+          source: 'camera',
+          allowEditing: false 
+        })
         
-        if (!permissionStatus.authorized) {
-          console.log('Requesting native camera permission for replace...')
-          const permissionResult = await requestCameraPermission()
-          console.log('Native camera permission result for replace:', permissionResult.granted)
-          
-          if (!permissionResult.granted) {
-            alert("Camera access denied. Please allow camera permissions in Settings and try again.")
-            // Restore saved image on permission denial
-            if (savedImageBeforeReplace) {
-              setCapturedImage(savedImageBeforeReplace)
-              setSavedImageBeforeReplace(null)
-            }
-            return
-          }
+        console.log('Native camera photo captured')
+        
+        // Update all tabs with the new photo
+        setDesignTabs(tabs => tabs.map(tab => ({
+          ...tab,
+          originalImage: photo.dataUrl
+        })))
+        
+        // Update current state
+        setCapturedImage(photo.dataUrl)
+        setSavedImageBeforeReplace(null) // Clear saved image since we have new one
+        
+        toast.success('Hand photo updated!')
+        return
+      } catch (error: any) {
+        console.error('Native camera failed:', error)
+        
+        // Restore saved image on error
+        if (savedImageBeforeReplace) {
+          setCapturedImage(savedImageBeforeReplace)
+          setSavedImageBeforeReplace(null)
         }
         
-        console.log('Native permissions granted for replace, using web camera UI...')
-      } catch (permError) {
-        console.log('Native permission check failed for replace, continuing with web camera:', permError)
+        toast.error('Failed to take photo', {
+          description: error.message || 'Please try again'
+        })
+        return
       }
     }
     
-    // Clear the original image from ALL tabs but keep their designs
+    // Web fallback: Clear the original image from ALL tabs but keep their designs
     setDesignTabs(tabs => tabs.map(tab => ({
       ...tab,
       originalImage: null
@@ -1722,7 +1727,7 @@ export default function CapturePage() {
     setCapturedImage(null)
     setDesignMode(null)
     
-    // Start camera for new hand photo (uses hybrid approach)
+    // Start camera for new hand photo (web camera)
     startCamera()
   }
   
@@ -3077,11 +3082,11 @@ export default function CapturePage() {
             }
           `}</style>
           <img
-            src={`/ref${handReference}.png`}
+            src="/ref2.png"
             alt="Hand reference"
             className="hand-outline w-full h-full object-contain transition-all duration-700"
             style={{
-              transform: `scale(${handReference === 1 ? 2.7 : handReference === 3 ? 4.575 : 4.35})`,
+              transform: 'scale(4.35)',
               mixBlendMode: 'screen',
               filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)) brightness(1.1)',
             }}
@@ -3197,16 +3202,6 @@ export default function CapturePage() {
           >
             <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-
-          {/* Hand Reference Toggle - Right Arrow */}
-          <button
-            onClick={() => setHandReference(handReference === 3 ? 2 : handReference === 2 ? 1 : 3)}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white shadow-xl flex flex-col items-center justify-center transition-all duration-500 active:scale-95"
-          >
-            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
             </svg>
           </button>
         </div>
