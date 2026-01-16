@@ -131,6 +131,8 @@ export default function CapturePage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [pendingGenerationSettings, setPendingGenerationSettings] = useState<DesignSettings | null>(null)
   const [savedImageBeforeReplace, setSavedImageBeforeReplace] = useState<string | null>(null) // Store image before replace
+  const [isNativeCameraProcessing, setIsNativeCameraProcessing] = useState(false) // Track native iOS camera processing state
+  const [isNativeIOSDetected, setIsNativeIOSDetected] = useState<boolean | null>(null) // Track native iOS detection (null = checking)
   
   // Tabs for multiple designs
   const [designTabs, setDesignTabs] = useState<DesignTab[]>([
@@ -378,6 +380,13 @@ export default function CapturePage() {
   // Check for user session and existing tabs on mount
   useEffect(() => {
     const initializePage = async () => {
+      // Detect native iOS immediately and set state
+      // Wait a bit for NativeBridge to be injected by native app
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const isNative = isNativeIOS()
+      setIsNativeIOSDetected(isNative)
+      console.log('📱 Native iOS detected:', isNative)
+      
       // Ensure user data is in localStorage
       const userStr = localStorage.getItem("ivoryUser")
       if (!userStr) {
@@ -850,6 +859,9 @@ export default function CapturePage() {
         const result = await takePicture({ source: 'camera' })
         
         if (result.dataUrl) {
+          // Show loading state immediately after photo is taken
+          setIsNativeCameraProcessing(true)
+          
           // Upload the captured image
           // ========== TEMPORARY FIX START ==========
           // This change redirects to /home after native iOS photo capture
@@ -910,6 +922,7 @@ export default function CapturePage() {
         }
       } catch (error) {
         console.error('Native camera error:', error)
+        setIsNativeCameraProcessing(false) // Reset loading state on error
         // ========== TEMPORARY FIX START ==========
         // Even on error, navigate to home page since capture page is hidden
         console.log('📱 Error occurred, navigating to home page')
@@ -2062,8 +2075,8 @@ export default function CapturePage() {
         <ZeroCreditsBanner credits={credits} />
         
         {/* Elegant Header */}
-        <div className={`absolute top-0 left-0 right-0 px-3 sm:px-6 lg:px-10 pb-3 sm:pb-4 z-10 bg-white/95 backdrop-blur-md border-b border-[#E8E8E8]/50 transition-all duration-500 ${isNative() ? 'pt-safe-extra' : 'pt-safe'}`}>
-          <div className={`max-w-7xl mx-auto ${isNative() ? 'pt-16' : 'pt-2'}`}>
+        <div className={`absolute top-0 left-0 right-0 px-3 sm:px-6 lg:px-10 pb-3 sm:pb-4 z-10 bg-white/95 backdrop-blur-md border-b border-[#E8E8E8]/50 transition-all duration-500 ${isNativeIOSDetected ? 'pt-safe-extra' : 'pt-safe'}`}>
+          <div className={`max-w-7xl mx-auto ${isNativeIOSDetected ? 'pt-16' : 'pt-2'}`}>
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               {/* Left side - Back button */}
               <button
@@ -2248,7 +2261,7 @@ export default function CapturePage() {
                   </button>
 
                   {/* Draw Button - Hidden on native iOS */}
-                  {!isNative() && (
+                  {!isNativeIOSDetected && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -2386,14 +2399,14 @@ export default function CapturePage() {
             isDrawerOpen 
               ? 'translate-y-0 opacity-100 pointer-events-auto' 
               : 'translate-y-full opacity-0 pointer-events-none'
-          } ${isNativeIOS() ? 'pt-safe-drawer' : ''}`}
+          } ${isNativeIOSDetected ? 'pt-safe-drawer' : ''}`}
           style={{ 
             visibility: isDrawerOpen ? 'visible' : 'hidden'
           }}
         >
           <div className="max-w-4xl mx-auto h-full flex flex-col">
             {/* Clear Close Button */}
-            <div className={`flex items-center justify-center py-4 ${isNativeIOS() ? 'pt-20' : ''}`}>
+            <div className={`flex items-center justify-center py-4 ${isNativeIOSDetected ? 'pt-20' : ''}`}>
               <button
                 onClick={() => setIsDrawerOpen(false)}
                 data-onboarding="close-design-drawer"
@@ -2973,14 +2986,14 @@ export default function CapturePage() {
             isUploadDrawerOpen 
               ? 'translate-y-0 opacity-100 pointer-events-auto' 
               : 'translate-y-full opacity-0 pointer-events-none'
-          } ${isNativeIOS() ? 'pt-safe-drawer' : ''}`}
+          } ${isNativeIOSDetected ? 'pt-safe-drawer' : ''}`}
           style={{ 
             visibility: isUploadDrawerOpen ? 'visible' : 'hidden'
           }}
         >
           <div className="max-w-4xl mx-auto h-full flex flex-col">
             {/* Clear Close Button */}
-            <div className={`flex items-center justify-center py-4 ${isNativeIOS() ? 'pt-20' : ''}`}>
+            <div className={`flex items-center justify-center py-4 ${isNativeIOSDetected ? 'pt-20' : ''}`}>
               <button
                 onClick={() => setIsUploadDrawerOpen(false)}
                 data-onboarding="close-upload-drawer"
@@ -3153,7 +3166,7 @@ export default function CapturePage() {
         onTouchEnd={handleTouchEnd}
       >
         {/* Video element - only show on web, not on native iOS */}
-        {!isNativeIOS() && (
+        {isNativeIOSDetected === false && (
           <video
             ref={videoRef}
             autoPlay
@@ -3169,8 +3182,15 @@ export default function CapturePage() {
           />
         )}
         
+        {/* Loading state while detecting native iOS */}
+        {isNativeIOSDetected === null && (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#1A1A1A] via-black to-[#1A1A1A]">
+            <Loader2 className="w-10 h-10 text-white animate-spin" strokeWidth={1.5} />
+          </div>
+        )}
+        
         {/* Native iOS: Show capture button instead of video */}
-        {isNativeIOS() && (
+        {isNativeIOSDetected === true && !isNativeCameraProcessing && (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#1A1A1A] via-black to-[#1A1A1A]">
             <button
               onClick={capturePhoto}
@@ -3183,7 +3203,7 @@ export default function CapturePage() {
         )}
 
         {/* Hand Reference Overlay - only show on web */}
-        {!isNativeIOS() && (
+        {isNativeIOSDetected === false && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[5] overflow-visible">
             <style jsx>{`
               @keyframes elegant-pulse {
@@ -3225,6 +3245,19 @@ export default function CapturePage() {
           </div>
         )}
 
+        {/* Native iOS Camera Processing Loading State */}
+        {isNativeCameraProcessing && (
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1A1A1A] via-black to-[#1A1A1A] flex items-center justify-center z-[100]">
+            <div className="flex flex-col items-center gap-6 animate-fade-in">
+              <Loader2 className="w-12 h-12 text-white animate-spin" strokeWidth={1.5} />
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-white text-lg font-light tracking-[0.2em] uppercase">Processing Photo</p>
+                <p className="text-white/60 text-sm font-light">Please wait...</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isGenerating && (
           <div className="fixed inset-0 bg-gradient-to-b from-[#1A1A1A] via-black to-[#1A1A1A] flex flex-col items-center justify-center backdrop-blur-sm z-[150]">
             <div className="flex flex-col items-center gap-6 animate-fade-in">
@@ -3249,8 +3282,8 @@ export default function CapturePage() {
         )}
 
         {/* Elegant Top Bar */}
-        <div className={`absolute top-0 left-0 right-0 px-4 sm:px-6 pb-5 z-10 bg-gradient-to-b from-black/60 via-black/30 to-transparent backdrop-blur-sm ${isNativeIOS() ? 'pt-[60px]' : 'pt-safe'}`}>
-          <div className={`flex items-center justify-between mb-4 ${isNativeIOS() ? 'pt-8' : 'pt-3'}`}>
+        <div className={`absolute top-0 left-0 right-0 px-4 sm:px-6 pb-5 z-10 bg-gradient-to-b from-black/60 via-black/30 to-transparent backdrop-blur-sm ${isNativeIOSDetected ? 'pt-[60px]' : 'pt-safe'}`}>
+          <div className={`flex items-center justify-between mb-4 ${isNativeIOSDetected ? 'pt-8' : 'pt-3'}`}>
             <button
               onClick={() => {
                 // If we have a saved image (user is in replace mode), restore it
@@ -3303,7 +3336,7 @@ export default function CapturePage() {
         )}
 
         {/* Elegant Right Side Controls - only show on web */}
-        {!isNativeIOS() && (
+        {isNativeIOSDetected === false && (
           <div className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-4 animate-fade-in-delayed">
             {/* Flip Camera Button */}
             <button
