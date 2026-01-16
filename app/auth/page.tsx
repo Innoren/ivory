@@ -588,6 +588,7 @@ function AuthPageContent() {
               </div>
             )}
 
+            {/* TEMPORARILY DISABLED - Twilio phone verification (re-enable after Twilio business setup)
             {isSignUp && (
               <div className="space-y-2">
                 <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">
@@ -655,6 +656,7 @@ function AuthPageContent() {
                 <p className="text-[10px] text-[#6B6B6B] font-light">Personal phone number for account verification</p>
               </div>
             )}
+            */}
             
             <div className="relative space-y-2">
               <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Password</label>
