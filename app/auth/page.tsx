@@ -79,6 +79,7 @@ function AuthPageContent() {
   const [password, setPassword] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+1")
   const [verificationCode, setVerificationCode] = useState("")
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [showVerification, setShowVerification] = useState(false)
@@ -190,14 +191,14 @@ function AuthPageContent() {
 
   // Send phone verification code
   const handleSendVerificationCode = async () => {
-    if (phoneNumber.length < 10) {
+    if (phoneNumber.length < 7) {
       alert('Please enter a complete phone number')
       return
     }
 
     setSendingCode(true)
     try {
-      const formattedPhone = toE164(phoneNumber)
+      const formattedPhone = toE164(phoneNumber, phoneCountryCode)
       const response = await fetch('/api/auth/phone/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -236,7 +237,7 @@ function AuthPageContent() {
 
     setVerifyingCode(true)
     try {
-      const formattedPhone = toE164(phoneNumber)
+      const formattedPhone = toE164(phoneNumber, phoneCountryCode)
       const response = await fetch('/api/auth/phone/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -303,7 +304,7 @@ function AuthPageContent() {
             authProvider: 'email',
             referralCode: referralCode || undefined,
             dateOfBirth: dateOfBirth || undefined,
-            phoneNumber: phoneNumber ? toE164(phoneNumber) : undefined,
+            phoneNumber: phoneNumber ? toE164(phoneNumber, phoneCountryCode) : undefined,
             phoneVerified: phoneVerified
           }),
         })
@@ -603,6 +604,8 @@ function AuthPageContent() {
                       setPhoneVerified(false)
                       setShowVerification(false)
                     }}
+                    countryCode={phoneCountryCode}
+                    onCountryCodeChange={setPhoneCountryCode}
                     className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md flex-1"
                     disabled={phoneVerified}
                   />
@@ -610,7 +613,7 @@ function AuthPageContent() {
                     <button
                       type="button"
                       onClick={handleSendVerificationCode}
-                      disabled={sendingCode || phoneNumber.length < 10}
+                      disabled={sendingCode || phoneNumber.length < 7}
                       className="px-4 h-12 sm:h-14 bg-[#8B7355] text-white text-xs tracking-wider uppercase rounded-lg hover:bg-[#1A1A1A] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       {sendingCode ? 'Sending...' : 'Verify'}

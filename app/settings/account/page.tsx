@@ -27,6 +27,7 @@ export default function AccountSecurityPage() {
   // Personal info state
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+1")
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
   const [showVerification, setShowVerification] = useState(false)
@@ -106,7 +107,7 @@ export default function AccountSecurityPage() {
 
   // Send phone verification code
   const handleSendVerificationCode = async () => {
-    if (phoneNumber.length < 10) {
+    if (phoneNumber.length < 7) {
       setPersonalInfoMessage('Please enter a complete phone number')
       return
     }
@@ -114,7 +115,7 @@ export default function AccountSecurityPage() {
     setSendingCode(true)
     setPersonalInfoMessage('')
     try {
-      const formattedPhone = toE164(phoneNumber)
+      const formattedPhone = toE164(phoneNumber, phoneCountryCode)
       const response = await fetch('/api/auth/phone/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +149,7 @@ export default function AccountSecurityPage() {
     setVerifyingCode(true)
     setPersonalInfoMessage('')
     try {
-      const formattedPhone = toE164(phoneNumber)
+      const formattedPhone = toE164(phoneNumber, phoneCountryCode)
       const response = await fetch('/api/auth/phone/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,7 +186,7 @@ export default function AccountSecurityPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           dateOfBirth: dateOfBirth || null,
-          phoneNumber: phoneNumber ? toE164(phoneNumber) : null,
+          phoneNumber: phoneNumber ? toE164(phoneNumber, phoneCountryCode) : null,
           phoneVerified
         }),
       })
@@ -268,10 +269,12 @@ export default function AccountSecurityPage() {
                     setPhoneVerified(false)
                     setShowVerification(false)
                   }}
+                  countryCode={phoneCountryCode}
+                  onCountryCodeChange={setPhoneCountryCode}
                   disabled={phoneVerified}
                   className="flex-1 px-4 py-3 border border-[#E8E8E8] font-light text-base focus:outline-none focus:border-[#8B7355] transition-all duration-300 disabled:bg-gray-50 h-12"
                 />
-                {!phoneVerified && phoneNumber.length >= 10 && (
+                {!phoneVerified && phoneNumber.length >= 7 && (
                   <button
                     type="button"
                     onClick={handleSendVerificationCode}
