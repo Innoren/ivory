@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useIsAppleWatch } from './watch-optimized-layout'
 import { haptics } from '@/lib/haptics'
 import { AnimatedNavButton } from './animated-nav-button'
+import { isNativeIOS } from '@/lib/native-bridge'
 
 interface BottomNavProps {
   onCenterAction?: () => void
@@ -17,6 +18,7 @@ export function BottomNav({ onCenterAction, centerActionLabel = 'Create' }: Bott
   const router = useRouter()
   const pathname = usePathname()
   const isWatch = useIsAppleWatch()
+  const [isNative, setIsNative] = React.useState(false)
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path)
 
@@ -29,6 +31,9 @@ export function BottomNav({ onCenterAction, centerActionLabel = 'Create' }: Bott
       const user = JSON.parse(userStr)
       setUserType(user.userType || 'client')
     }
+    
+    // Check if running on native iOS
+    setIsNative(isNativeIOS())
   }, [])
 
   const handleHomeClick = () => {
@@ -69,16 +74,18 @@ export function BottomNav({ onCenterAction, centerActionLabel = 'Create' }: Bott
             />
           )}
 
-          {/* Center Action Button */}
-          <button
-            onClick={() => {
-              haptics.medium()
-              onCenterAction?.()
-            }}
-            className="relative flex items-center justify-center bg-[#1A1A1A] hover:bg-[#8B7355] active:scale-95 transition-all duration-300 w-12 h-12 rounded-lg nav-button-ripple"
-          >
-            <Plus className="w-6 h-6 text-white" strokeWidth={1.5} />
-          </button>
+          {/* Center Action Button - Hidden on native iOS */}
+          {!isNative && (
+            <button
+              onClick={() => {
+                haptics.medium()
+                onCenterAction?.()
+              }}
+              className="relative flex items-center justify-center bg-[#1A1A1A] hover:bg-[#8B7355] active:scale-95 transition-all duration-300 w-12 h-12 rounded-lg nav-button-ripple"
+            >
+              <Plus className="w-6 h-6 text-white" strokeWidth={1.5} />
+            </button>
+          )}
 
           {/* Profile navigation item */}
           <AnimatedNavButton
@@ -145,19 +152,21 @@ export function BottomNav({ onCenterAction, centerActionLabel = 'Create' }: Bott
               />
             )}
 
-            {/* Center Action Button */}
-            <button
-              onClick={() => {
-                haptics.medium();
-                onCenterAction?.();
-              }}
-              className={cn(
-                "relative flex items-center justify-center bg-[#1A1A1A] hover:bg-[#8B7355] active:scale-95 transition-all duration-300 nav-button-ripple",
-                isWatch ? "w-10 h-10 rounded-full" : "w-12 h-12 -mt-2"
-              )}
-            >
-              <Plus className={isWatch ? "w-5 h-5 text-white" : "w-6 h-6 text-white"} strokeWidth={1.5} />
-            </button>
+            {/* Center Action Button - Hidden on native iOS */}
+            {!isNative && (
+              <button
+                onClick={() => {
+                  haptics.medium();
+                  onCenterAction?.();
+                }}
+                className={cn(
+                  "relative flex items-center justify-center bg-[#1A1A1A] hover:bg-[#8B7355] active:scale-95 transition-all duration-300 nav-button-ripple",
+                  isWatch ? "w-10 h-10 rounded-full" : "w-12 h-12 -mt-2"
+                )}
+              >
+                <Plus className={isWatch ? "w-5 h-5 text-white" : "w-6 h-6 text-white"} strokeWidth={1.5} />
+              </button>
+            )}
 
             {/* Profile Button */}
             <AnimatedNavButton
