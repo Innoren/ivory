@@ -1,17 +1,20 @@
 import twilio from 'twilio';
 
-// Initialize Twilio client
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
-const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-
-// Create Twilio client (lazy initialization)
+// Create Twilio client (lazy initialization with fresh env var reads)
 let twilioClient: twilio.Twilio | null = null;
 
 function getClient(): twilio.Twilio {
   if (!twilioClient) {
+    // Read env vars at runtime, not at module load time
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    
     if (!accountSid || !authToken) {
+      console.error('Twilio config check:', { 
+        hasAccountSid: !!accountSid, 
+        hasAuthToken: !!authToken,
+        accountSidPrefix: accountSid?.substring(0, 4)
+      });
       throw new Error('Twilio credentials not configured');
     }
     twilioClient = twilio(accountSid, authToken);
@@ -60,6 +63,9 @@ export async function sendVerificationCode(phoneNumber: string): Promise<{ succe
   try {
     const client = getClient();
     const formattedPhone = formatPhoneNumber(phoneNumber);
+    const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
     
     if (!isValidPhoneNumber(formattedPhone)) {
       return { success: false, error: 'Invalid phone number format' };
@@ -85,7 +91,7 @@ export async function sendVerificationCode(phoneNumber: string): Promise<{ succe
       to: formattedPhone,
       ...(messagingServiceSid 
         ? { messagingServiceSid } 
-        : { from: process.env.TWILIO_PHONE_NUMBER }),
+        : { from: twilioPhoneNumber }),
     });
 
     return { success: true };
@@ -106,6 +112,7 @@ export async function verifyCode(
   try {
     const client = getClient();
     const formattedPhone = formatPhoneNumber(phoneNumber);
+    const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
 
     if (!verifyServiceSid) {
       // If not using Verify Service, verification is handled by the API route
@@ -141,6 +148,8 @@ export async function sendSMS(
   try {
     const client = getClient();
     const formattedPhone = formatPhoneNumber(phoneNumber);
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+    const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
     
     if (!isValidPhoneNumber(formattedPhone)) {
       return { success: false, error: 'Invalid phone number format' };
@@ -151,7 +160,7 @@ export async function sendSMS(
       to: formattedPhone,
       ...(messagingServiceSid 
         ? { messagingServiceSid } 
-        : { from: process.env.TWILIO_PHONE_NUMBER }),
+        : { from: twilioPhoneNumber }),
     });
 
     return { success: true, messageId: result.sid };

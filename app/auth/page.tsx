@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PhoneInput, toE164 } from "@/components/phone-input"
 import { Capacitor } from "@capacitor/core"
 import { Browser } from "@capacitor/browser"
 import { Haptics, ImpactStyle } from "@capacitor/haptics"
@@ -189,17 +190,18 @@ function AuthPageContent() {
 
   // Send phone verification code
   const handleSendVerificationCode = async () => {
-    if (!phoneNumber) {
-      alert('Please enter a phone number')
+    if (phoneNumber.length < 10) {
+      alert('Please enter a complete phone number')
       return
     }
 
     setSendingCode(true)
     try {
+      const formattedPhone = toE164(phoneNumber)
       const response = await fetch('/api/auth/phone/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber }),
+        body: JSON.stringify({ phoneNumber: formattedPhone }),
       })
 
       const data = await response.json()
@@ -234,11 +236,12 @@ function AuthPageContent() {
 
     setVerifyingCode(true)
     try {
+      const formattedPhone = toE164(phoneNumber)
       const response = await fetch('/api/auth/phone/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          phoneNumber, 
+          phoneNumber: formattedPhone, 
           code: verificationCode,
           storedOtp,
           storedExpires
@@ -300,7 +303,7 @@ function AuthPageContent() {
             authProvider: 'email',
             referralCode: referralCode || undefined,
             dateOfBirth: dateOfBirth || undefined,
-            phoneNumber: phoneNumber || undefined,
+            phoneNumber: phoneNumber ? toE164(phoneNumber) : undefined,
             phoneVerified: phoneVerified
           }),
         })
@@ -593,15 +596,13 @@ function AuthPageContent() {
                   )}
                 </label>
                 <div className="flex gap-2">
-                  <Input
-                    type="tel"
+                  <PhoneInput
                     value={phoneNumber}
-                    onChange={(e) => {
-                      setPhoneNumber(e.target.value)
+                    onChange={(value) => {
+                      setPhoneNumber(value)
                       setPhoneVerified(false)
                       setShowVerification(false)
                     }}
-                    placeholder="+1 (555) 123-4567"
                     className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md flex-1"
                     disabled={phoneVerified}
                   />
@@ -609,7 +610,7 @@ function AuthPageContent() {
                     <button
                       type="button"
                       onClick={handleSendVerificationCode}
-                      disabled={sendingCode || !phoneNumber}
+                      disabled={sendingCode || phoneNumber.length < 10}
                       className="px-4 h-12 sm:h-14 bg-[#8B7355] text-white text-xs tracking-wider uppercase rounded-lg hover:bg-[#1A1A1A] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       {sendingCode ? 'Sending...' : 'Verify'}

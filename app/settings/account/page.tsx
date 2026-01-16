@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { BottomNav } from "@/components/bottom-nav"
 import { ArrowLeft, Phone, Calendar, CheckCircle } from "lucide-react"
+import { PhoneInput, toE164 } from "@/components/phone-input"
+
+// Helper to format E.164 to display format
+function formatPhoneForDisplay(e164: string): string {
+  // Remove +1 prefix and return just the 10 digits
+  if (e164.startsWith('+1') && e164.length === 12) {
+    return e164.slice(2)
+  }
+  return e164.replace(/\D/g, '').slice(0, 10)
+}
 
 export default function AccountSecurityPage() {
   const router = useRouter()
@@ -44,7 +54,8 @@ export default function AccountSecurityPage() {
             setDateOfBirth(new Date(data.dateOfBirth).toISOString().split('T')[0])
           }
           if (data.phoneNumber) {
-            setPhoneNumber(data.phoneNumber)
+            // Convert E.164 format to display format (just digits)
+            setPhoneNumber(formatPhoneForDisplay(data.phoneNumber))
           }
           setPhoneVerified(data.phoneVerified || false)
         }
@@ -95,18 +106,19 @@ export default function AccountSecurityPage() {
 
   // Send phone verification code
   const handleSendVerificationCode = async () => {
-    if (!phoneNumber) {
-      setPersonalInfoMessage('Please enter a phone number')
+    if (phoneNumber.length < 10) {
+      setPersonalInfoMessage('Please enter a complete phone number')
       return
     }
 
     setSendingCode(true)
     setPersonalInfoMessage('')
     try {
+      const formattedPhone = toE164(phoneNumber)
       const response = await fetch('/api/auth/phone/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, userId }),
+        body: JSON.stringify({ phoneNumber: formattedPhone, userId }),
       })
 
       const data = await response.json()
@@ -136,10 +148,11 @@ export default function AccountSecurityPage() {
     setVerifyingCode(true)
     setPersonalInfoMessage('')
     try {
+      const formattedPhone = toE164(phoneNumber)
       const response = await fetch('/api/auth/phone/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, code: verificationCode, userId }),
+        body: JSON.stringify({ phoneNumber: formattedPhone, code: verificationCode, userId }),
       })
 
       const data = await response.json()
@@ -172,7 +185,7 @@ export default function AccountSecurityPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           dateOfBirth: dateOfBirth || null,
-          phoneNumber: phoneNumber || null,
+          phoneNumber: phoneNumber ? toE164(phoneNumber) : null,
           phoneVerified
         }),
       })
@@ -248,19 +261,17 @@ export default function AccountSecurityPage() {
                 )}
               </label>
               <div className="flex gap-2">
-                <input
-                  type="tel"
+                <PhoneInput
                   value={phoneNumber}
-                  onChange={(e) => {
-                    setPhoneNumber(e.target.value)
+                  onChange={(value) => {
+                    setPhoneNumber(value)
                     setPhoneVerified(false)
                     setShowVerification(false)
                   }}
-                  placeholder="+1 (555) 123-4567"
                   disabled={phoneVerified}
-                  className="flex-1 px-4 py-3 border border-[#E8E8E8] font-light text-base focus:outline-none focus:border-[#8B7355] transition-all duration-300 disabled:bg-gray-50"
+                  className="flex-1 px-4 py-3 border border-[#E8E8E8] font-light text-base focus:outline-none focus:border-[#8B7355] transition-all duration-300 disabled:bg-gray-50 h-12"
                 />
-                {!phoneVerified && phoneNumber && (
+                {!phoneVerified && phoneNumber.length >= 10 && (
                   <button
                     type="button"
                     onClick={handleSendVerificationCode}
