@@ -92,6 +92,12 @@ struct ContentView: View {
                 UserDefaults.standard.set(true, forKey: "hasSeenIntroVideo")
                 print("🎬 Saved hasSeenIntroVideo = true")
                 showIntroVideo = false
+                
+                // Navigate to login/signup page after video ends
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    print("🎬 Navigating to login page...")
+                    webViewModel.navigateToLogin()
+                }
             })
             .edgesIgnoringSafeArea(.all)
         }

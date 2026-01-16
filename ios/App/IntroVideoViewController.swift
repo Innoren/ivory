@@ -1,6 +1,7 @@
 import UIKit
 import AVKit
 import AVFoundation
+import StoreKit
 
 class IntroVideoViewController: AVPlayerViewController {
     
@@ -57,8 +58,18 @@ class IntroVideoViewController: AVPlayerViewController {
         }
         hasCompletedOnce = true
         
-        print("🎬 Calling onComplete callback")
-        onComplete?()
+        print("🎬 Requesting App Store rating...")
+        
+        // Request App Store rating
+        if let windowScene = view.window?.windowScene {
+            SKStoreReviewController.requestReview(in: windowScene)
+        }
+        
+        // Small delay to let rating dialog appear, then dismiss video
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            print("🎬 Calling onComplete callback")
+            self.onComplete?()
+        }
     }
     
     deinit {

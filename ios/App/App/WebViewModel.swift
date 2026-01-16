@@ -489,4 +489,22 @@ class WebViewModel: ObservableObject {
         """
         callJavaScript(script)
     }
+    
+    // MARK: - Navigation
+    
+    func navigateToLogin() {
+        #if DEBUG
+        let urlString = "http://localhost:3000"
+        #else
+        let urlString = "https://www.ivoryschoice.com"
+        #endif
+        
+        if let url = URL(string: urlString) {
+            let request = URLRequest(url: url)
+            DispatchQueue.main.async { [weak self] in
+                self?.webView?.load(request)
+                print("🔵 Navigating to login page: \(urlString)")
+            }
+        }
+    }
 }
