@@ -33,10 +33,29 @@ export default function BookAppointmentPage() {
   const [techAvailability, setTechAvailability] = useState<any[]>([]);
   const [techTimeOff, setTechTimeOff] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     fetchTechDetails();
+    checkUserSession();
   }, [techId]);
+
+  // Check user session on mount
+  const checkUserSession = async () => {
+    try {
+      const response = await fetch('/api/auth/session');
+      const data = await response.json();
+      if (data.user) {
+        setCurrentUser(data.user);
+        // Also ensure token is in localStorage for API calls
+        if (data.user.token) {
+          localStorage.setItem('token', data.user.token);
+        }
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedDate && tech) {
@@ -207,10 +226,29 @@ export default function BookAppointmentPage() {
         appointmentDateTime.setHours(hours, minutes);
       }
 
-      // Get token from localStorage for authentication
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      // Re-check session to ensure we have the latest auth state
+      // This handles cases where the initial session check hasn't completed
+      // or where the user logged in via OAuth in another tab
+      let user = currentUser;
+      if (!user) {
+        try {
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          if (sessionData.user) {
+            user = sessionData.user;
+            setCurrentUser(user);
+            // Store token for API calls
+            if (user.token) {
+              localStorage.setItem('token', user.token);
+            }
+          }
+        } catch (error) {
+          console.error('Session re-check error:', error);
+        }
+      }
+
+      // If still no user after re-check, prompt for login
+      if (!user) {
         // Store booking details for after login
         const bookingDetails = {
           techId: parseInt(techId),
@@ -224,6 +262,7 @@ export default function BookAppointmentPage() {
         if (confirm('You need to log in to book an appointment. Would you like to log in now?')) {
           router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
         }
+        setLoading(false);
         return;
       }
       
@@ -231,8 +270,8 @@ export default function BookAppointmentPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include', // Include cookies for session-based auth
         body: JSON.stringify({
           techProfileId: parseInt(techId),
           serviceId: parseInt(selectedService),
@@ -257,9 +296,25 @@ export default function BookAppointmentPage() {
 
   const handleStripePayment = async (booking: any) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      // Re-check session to ensure we have the latest auth state
+      let user = currentUser;
+      if (!user) {
+        try {
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          if (sessionData.user) {
+            user = sessionData.user;
+            setCurrentUser(user);
+            if (user.token) {
+              localStorage.setItem('token', user.token);
+            }
+          }
+        } catch (error) {
+          console.error('Session re-check error:', error);
+        }
+      }
+
+      if (!user) {
         // Better user experience for payment authentication
         if (confirm('You need to log in to complete payment. Would you like to log in now?')) {
           router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
@@ -271,8 +326,8 @@ export default function BookAppointmentPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include', // Include cookies for session-based auth
         body: JSON.stringify({ bookingId: booking.id }),
       });
 
