@@ -12,6 +12,7 @@ class IntroVideoViewController: AVPlayerViewController {
         
         // Configure player view controller
         showsPlaybackControls = false
+        // Use resizeAspect to show full video without zoom/crop
         videoGravity = .resizeAspect
         view.backgroundColor = .black
         
