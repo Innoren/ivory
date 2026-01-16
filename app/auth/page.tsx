@@ -76,6 +76,15 @@ function AuthPageContent() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [dateOfBirth, setDateOfBirth] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [verificationCode, setVerificationCode] = useState("")
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [showVerification, setShowVerification] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
+  const [verifyingCode, setVerifyingCode] = useState(false)
+  const [storedOtp, setStoredOtp] = useState<string | null>(null)
+  const [storedExpires, setStoredExpires] = useState<string | null>(null)
   const [isChecking, setIsChecking] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [referralCode, setReferralCode] = useState<string | null>(null)
@@ -178,6 +187,82 @@ function AuthPageContent() {
     }
   }, [router])
 
+  // Send phone verification code
+  const handleSendVerificationCode = async () => {
+    if (!phoneNumber) {
+      alert('Please enter a phone number')
+      return
+    }
+
+    setSendingCode(true)
+    try {
+      const response = await fetch('/api/auth/phone/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || 'Failed to send verification code')
+        return
+      }
+
+      // Store OTP info for verification (only returned during signup flow)
+      if (data.otp) {
+        setStoredOtp(data.otp)
+        setStoredExpires(data.expiresAt)
+      }
+
+      setShowVerification(true)
+      alert('Verification code sent! Check your phone.')
+    } catch (error) {
+      console.error('Send code error:', error)
+      alert('Failed to send verification code')
+    } finally {
+      setSendingCode(false)
+    }
+  }
+
+  // Verify phone code
+  const handleVerifyCode = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      alert('Please enter a 6-digit verification code')
+      return
+    }
+
+    setVerifyingCode(true)
+    try {
+      const response = await fetch('/api/auth/phone/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phoneNumber, 
+          code: verificationCode,
+          storedOtp,
+          storedExpires
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || 'Invalid verification code')
+        return
+      }
+
+      setPhoneVerified(true)
+      setShowVerification(false)
+      alert('Phone number verified!')
+    } catch (error) {
+      console.error('Verify code error:', error)
+      alert('Failed to verify code')
+    } finally {
+      setVerifyingCode(false)
+    }
+  }
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -193,6 +278,17 @@ function AuthPageContent() {
           alert('You must accept the Terms of Service and Privacy Policy to create an account')
           return
         }
+
+        // Validate DOB if provided
+        if (dateOfBirth) {
+          const dob = new Date(dateOfBirth)
+          const today = new Date()
+          const minAgeDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
+          if (dob > minAgeDate) {
+            alert('You must be at least 13 years old to create an account')
+            return
+          }
+        }
         
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
@@ -202,7 +298,10 @@ function AuthPageContent() {
             email, 
             password, 
             authProvider: 'email',
-            referralCode: referralCode || undefined 
+            referralCode: referralCode || undefined,
+            dateOfBirth: dateOfBirth || undefined,
+            phoneNumber: phoneNumber || undefined,
+            phoneVerified: phoneVerified
           }),
         })
         
@@ -468,6 +567,88 @@ function AuthPageContent() {
                   className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
                   required
                 />
+              </div>
+            )}
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Date of Birth</label>
+                <Input
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                />
+                <p className="text-[10px] text-[#6B6B6B] font-light">Must be at least 13 years old</p>
+              </div>
+            )}
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">
+                  Phone Number
+                  {phoneVerified && (
+                    <span className="ml-2 text-green-600 text-[10px] normal-case">✓ Verified</span>
+                  )}
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      setPhoneNumber(e.target.value)
+                      setPhoneVerified(false)
+                      setShowVerification(false)
+                    }}
+                    placeholder="+1 (555) 123-4567"
+                    className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md flex-1"
+                    disabled={phoneVerified}
+                  />
+                  {!phoneVerified && (
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingCode || !phoneNumber}
+                      className="px-4 h-12 sm:h-14 bg-[#8B7355] text-white text-xs tracking-wider uppercase rounded-lg hover:bg-[#1A1A1A] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {sendingCode ? 'Sending...' : 'Verify'}
+                    </button>
+                  )}
+                </div>
+                
+                {showVerification && !phoneVerified && (
+                  <div className="mt-3 p-4 border border-[#E8E8E8] rounded-lg bg-[#FAFAF8]">
+                    <label className="block text-[10px] tracking-widest uppercase text-[#6B6B6B] mb-2 font-medium">Enter 6-digit code</label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="000000"
+                        maxLength={6}
+                        className="h-12 text-base text-center tracking-[0.5em] border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-medium touch-manipulation bg-white flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyCode}
+                        disabled={verifyingCode || verificationCode.length !== 6}
+                        className="px-4 h-12 bg-[#1A1A1A] text-white text-xs tracking-wider uppercase rounded-lg hover:bg-[#8B7355] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {verifyingCode ? 'Verifying...' : 'Confirm'}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingCode}
+                      className="mt-2 text-xs text-[#8B7355] hover:text-[#1A1A1A] transition-colors"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                )}
+                <p className="text-[10px] text-[#6B6B6B] font-light">Personal phone number for account verification</p>
               </div>
             )}
             

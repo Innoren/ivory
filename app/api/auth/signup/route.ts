@@ -5,11 +5,21 @@ import { eq } from 'drizzle-orm';
 import { createSession } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
 import { nanoid } from 'nanoid';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/twilio';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { username, email, password, authProvider = 'email', referralCode } = body;
+    const { 
+      username, 
+      email, 
+      password, 
+      authProvider = 'email', 
+      referralCode,
+      dateOfBirth,
+      phoneNumber,
+      phoneVerified = false
+    } = body;
 
     if (!username) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 });
@@ -22,6 +32,31 @@ export async function POST(request: Request) {
     // For email auth, password is required
     if (authProvider === 'email' && !password) {
       return NextResponse.json({ error: 'Password is required for email authentication' }, { status: 400 });
+    }
+
+    // Validate phone number if provided
+    let formattedPhone: string | null = null;
+    if (phoneNumber) {
+      formattedPhone = formatPhoneNumber(phoneNumber);
+      if (!isValidPhoneNumber(formattedPhone)) {
+        return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
+      }
+    }
+
+    // Validate date of birth if provided
+    let parsedDOB: Date | null = null;
+    if (dateOfBirth) {
+      parsedDOB = new Date(dateOfBirth);
+      if (isNaN(parsedDOB.getTime())) {
+        return NextResponse.json({ error: 'Invalid date of birth' }, { status: 400 });
+      }
+      
+      // Check minimum age (13 years)
+      const today = new Date();
+      const minAgeDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+      if (parsedDOB > minAgeDate) {
+        return NextResponse.json({ error: 'You must be at least 13 years old to create an account' }, { status: 400 });
+      }
     }
 
     // Check if user already exists
@@ -72,6 +107,9 @@ export async function POST(request: Request) {
         credits: 5, // Initial free credits
         referralCode: newReferralCode,
         referredBy: referrerId,
+        dateOfBirth: parsedDOB,
+        phoneNumber: formattedPhone,
+        phoneVerified: phoneVerified,
       })
       .returning();
 
@@ -156,6 +194,9 @@ export async function POST(request: Request) {
       avatar: newUser[0].avatar,
       credits: newUser[0].credits,
       referralCode: newUser[0].referralCode,
+      dateOfBirth: newUser[0].dateOfBirth,
+      phoneNumber: newUser[0].phoneNumber,
+      phoneVerified: newUser[0].phoneVerified,
       createdAt: newUser[0].createdAt,
       isNewUser: true, // Flag to trigger PostHog signup tracking on client
     });

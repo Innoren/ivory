@@ -20,6 +20,12 @@ export const users: any = pgTable('users', {
   credits: integer('credits').default(2).notNull(), // Free credits on signup
   referralCode: varchar('referral_code', { length: 50 }).unique(), // User's unique referral code
   referredBy: integer('referred_by').references((): any => users.id), // Who referred this user
+  // Personal info
+  dateOfBirth: timestamp('date_of_birth'), // DOB for age verification
+  phoneNumber: varchar('phone_number', { length: 20 }), // Personal phone number (E.164 format)
+  phoneVerified: boolean('phone_verified').default(false), // Whether phone is verified via Twilio
+  phoneVerificationCode: varchar('phone_verification_code', { length: 6 }), // OTP code
+  phoneVerificationExpires: timestamp('phone_verification_expires'), // When OTP expires
   // Subscription fields
   subscriptionTier: varchar('subscription_tier', { length: 50 }).default('free'), // free, pro, business
   subscriptionStatus: varchar('subscription_status', { length: 50 }).default('inactive'), // active, canceled, past_due, inactive
