@@ -13,10 +13,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ = WatchConnectivityManager.shared
         _ = NotificationManager.shared
         
-        // Request notification permissions
-        NotificationManager.shared.requestAuthorization { granted in
-            os_log("📱 Notification permission: %@", log: self.logger, type: .info, granted ? "granted" : "denied")
-        }
+        // Don't request notification permissions on launch - wait until after login
+        // This provides a better user experience and follows Apple's best practices
         
         return true
     }

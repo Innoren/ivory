@@ -169,6 +169,16 @@ function AuthPageContent() {
               localStorage.setItem("token", data.user.token)
             }
             
+            // Request notification permission after successful OAuth login (iOS best practice)
+            if (isNativeIOS()) {
+              try {
+                const { requestNotificationPermission } = await import('@/lib/native-bridge')
+                await requestNotificationPermission()
+              } catch (error) {
+                console.log('Notification permission request skipped:', error)
+              }
+            }
+            
             if (data.user.userType === 'tech') {
               router.push('/tech/dashboard')
             } else if (data.user.userType === 'client') {
@@ -323,6 +333,16 @@ function AuthPageContent() {
           trackUserSignup(user, 'email')
         }
         
+        // Request notification permission after successful signup (iOS best practice)
+        if (isNativeIOS()) {
+          try {
+            const { requestNotificationPermission } = await import('@/lib/native-bridge')
+            await requestNotificationPermission()
+          } catch (error) {
+            console.log('Notification permission request skipped:', error)
+          }
+        }
+        
         // Check if there's a return URL stored
         const returnUrl = localStorage.getItem('returnUrl')
         if (returnUrl) {
@@ -352,6 +372,16 @@ function AuthPageContent() {
         // Also store the token separately for API calls
         if (user.token) {
           localStorage.setItem("token", user.token)
+        }
+        
+        // Request notification permission after successful login (iOS native only)
+        if (isNativeIOS()) {
+          try {
+            const { requestNotificationPermission } = await import('@/lib/native-bridge')
+            await requestNotificationPermission()
+          } catch (error) {
+            console.log('Notification permission request skipped:', error)
+          }
         }
         
         // Identify user in PostHog on login
