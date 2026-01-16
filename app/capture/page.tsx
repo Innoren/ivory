@@ -3116,6 +3116,7 @@ export default function CapturePage() {
             currentPhase={onboardingPhase}
             currentStep={onboardingStep}
             onStepChange={setOnboardingStep}
+            hasCapturedImage={!!capturedImage}
           />
         )}
       </div>
@@ -3323,13 +3324,14 @@ export default function CapturePage() {
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
       
-      {/* Onboarding Tour */}
-      {shouldShowOnboarding && (
+      {/* Onboarding Tour - Only show when we have a captured image (not during camera view) */}
+      {shouldShowOnboarding && capturedImage && (
         <CaptureOnboarding 
           onComplete={completeOnboarding}
           currentPhase={onboardingPhase}
           currentStep={onboardingStep}
           onStepChange={setOnboardingStep}
+          hasCapturedImage={!!capturedImage}
         />
       )}
     </div>

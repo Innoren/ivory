@@ -22,7 +22,7 @@ class CameraOverlayViewController: UIViewController {
     var onImageCaptured: ((UIImage) -> Void)?
     var onCancel: (() -> Void)?
     var overlayImageName: String = "ref2" // Default overlay image
-    var overlayOpacity: CGFloat = 0.5 // Default opacity
+    var overlayOpacity: CGFloat = 1.0 // Fixed at full opacity
     
     // MARK: - UI Elements
     
@@ -57,18 +57,6 @@ class CameraOverlayViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(flipCamera), for: .touchUpInside)
         return button
-    }()
-    
-    private lazy var opacitySlider: UISlider = {
-        let slider = UISlider()
-        slider.minimumValue = 0
-        slider.maximumValue = 1
-        slider.value = Float(overlayOpacity)
-        slider.minimumTrackTintColor = .white
-        slider.maximumTrackTintColor = .gray
-        slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.addTarget(self, action: #selector(opacityChanged), for: .valueChanged)
-        return slider
     }()
     
     private var currentCameraPosition: AVCaptureDevice.Position = .back
@@ -139,28 +127,28 @@ class CameraOverlayViewController: UIViewController {
         
         overlayImageView = UIImageView(image: overlayImage)
         overlayImageView?.contentMode = .scaleAspectFit
-        overlayImageView?.alpha = overlayOpacity
+        overlayImageView?.alpha = 1.0 // Always full opacity
         overlayImageView?.translatesAutoresizingMaskIntoConstraints = false
         
         if let overlayImageView = overlayImageView {
             view.addSubview(overlayImageView)
             
+            // Make ref2 appear 2x bigger (1.6x of screen instead of 0.8x)
             NSLayoutConstraint.activate([
                 overlayImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 overlayImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-                overlayImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
-                overlayImageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.8)
+                overlayImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.6),
+                overlayImageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 1.6)
             ])
         }
         
-        os_log("✅ Overlay setup complete with opacity: %f", log: logger, type: .info, overlayOpacity)
+        os_log("✅ Overlay setup complete at full opacity and 2x size", log: logger, type: .info)
     }
     
     private func setupUI() {
         view.addSubview(captureButton)
         view.addSubview(closeButton)
         view.addSubview(flipButton)
-        view.addSubview(opacitySlider)
         
         NSLayoutConstraint.activate([
             // Capture button (bottom center)
@@ -179,12 +167,7 @@ class CameraOverlayViewController: UIViewController {
             flipButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             flipButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             flipButton.widthAnchor.constraint(equalToConstant: 40),
-            flipButton.heightAnchor.constraint(equalToConstant: 40),
-            
-            // Opacity slider (bottom, above capture button)
-            opacitySlider.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            opacitySlider.bottomAnchor.constraint(equalTo: captureButton.topAnchor, constant: -30),
-            opacitySlider.widthAnchor.constraint(equalToConstant: 200)
+            flipButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -246,11 +229,6 @@ class CameraOverlayViewController: UIViewController {
         captureSession.commitConfiguration()
         
         os_log("🔄 Camera flipped to %@", log: logger, type: .info, currentCameraPosition == .back ? "back" : "front")
-    }
-    
-    @objc private func opacityChanged(_ slider: UISlider) {
-        overlayImageView?.alpha = CGFloat(slider.value)
-        os_log("🎚️ Overlay opacity changed to %f", log: logger, type: .info, slider.value)
     }
 }
 

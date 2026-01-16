@@ -26,6 +26,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
       action: 'Tap the camera button'
     }
   ] as OnboardingStep[] : []),
+  // Skip upload drawer step on native iOS when camera is active (no capturedImage yet)
   {
     id: 'open-upload-drawer',
     title: 'Open Upload Drawer',
@@ -133,9 +134,14 @@ interface CaptureOnboardingProps {
   currentPhase: 'capture' | 'design' | 'visualize'
   currentStep?: number // Receive step from parent
   onStepChange?: (step: number) => void
+  hasCapturedImage?: boolean // Track if user has captured an image
 }
 
-export function CaptureOnboarding({ onComplete, currentPhase, currentStep: externalStep, onStepChange }: CaptureOnboardingProps) {
+export function CaptureOnboarding({ onComplete, currentPhase, currentStep: externalStep, onStepChange, hasCapturedImage }: CaptureOnboardingProps) {
+  // Don't show onboarding on native iOS if no image is captured yet (camera is active)
+  if (isNative() && !hasCapturedImage) {
+    return null
+  }
   const [currentStep, setCurrentStep] = useState(0) // Always start at step 0
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
