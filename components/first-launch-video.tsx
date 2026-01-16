@@ -16,17 +16,19 @@ export function FirstLaunchVideo() {
   const isNative = isNativeIOS() || Capacitor.isNativePlatform()
 
   useEffect(() => {
-    // Check if user has already seen the intro video
-    const hasSeenVideo = localStorage.getItem("hasSeenIntroVideo")
-    
-    // Only show video on native iOS and only if they haven't seen it
-    if (isNative && !hasSeenVideo) {
-      setShowVideo(true)
+    // IMPORTANT: Native iOS now handles intro video via IntroVideoViewController.swift
+    // This web-based video player is DISABLED on native iOS to prevent double playback
+    if (isNative) {
+      // Native iOS handles video natively - don't show web video
+      setShowVideo(false)
       setIsLoading(false)
-    } else {
-      // Web users or users who've already seen video don't see it
-      setIsLoading(false)
+      return
     }
+    
+    // For web users, we don't show the intro video at all
+    // (The video is only meant for native iOS first launch experience)
+    setShowVideo(false)
+    setIsLoading(false)
   }, [isNative])
 
   // Handle app state changes (pause/resume video)
@@ -148,7 +150,7 @@ export function FirstLaunchVideo() {
           handleSkip()
         }}
       >
-        <source src="/ivory2.mp4" type="video/mp4" />
+        <source src="/ivory3.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
     </div>

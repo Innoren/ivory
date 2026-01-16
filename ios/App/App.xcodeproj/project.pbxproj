@@ -10,6 +10,7 @@
 		034E99072F18981900C356CE /* RatingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034E99062F18981900C356CE /* RatingManager.swift */; };
 		034E99092F19190D00C356CE /* IntroVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034E99082F19190D00C356CE /* IntroVideoViewController.swift */; };
 		034EDB062EF20FF800BA022C /* ivory Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 034EDAFC2EF20FF700BA022C /* ivory Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		03625F452F1A0BA600BD5CE8 /* ivory3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 03625F442F1A0BA600BD5CE8 /* ivory3.mp4 */; };
 		0378E48E2F1066D100F5DF8C /* IAPManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0378E4842F1066D100F5DF8C /* IAPManager.swift */; };
 		037B97362F10B6C5005FF62D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037B97302F10B6C5005FF62D /* NotificationManager.swift */; };
 		037B97372F10B6C5005FF62D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037B972C2F10B6C5005FF62D /* ContentView.swift */; };
@@ -23,7 +24,6 @@
 		037B973F2F10B6C5005FF62D /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037B972B2F10B6C5005FF62D /* CameraManager.swift */; };
 		037B97402F10B6C5005FF62D /* IvoryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037B972F2F10B6C5005FF62D /* IvoryApp.swift */; };
 		037F54EA2F1892A0006B58AC /* RatingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037F54E92F1892A0006B58AC /* RatingPlugin.swift */; };
-		037F54EC2F18955A006B58AC /* ivory2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 037F54EB2F18955A006B58AC /* ivory2.mp4 */; };
 		03A334C92F08D1C500684786 /* IAPPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A334C82F08D1C500684786 /* IAPPlugin.swift */; };
 		03A3CF4D2F00E7DA00EF5B32 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A3CF4C2F00E7DA00EF5B32 /* StoreKit.framework */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
@@ -64,6 +64,7 @@
 		034E99062F18981900C356CE /* RatingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingManager.swift; sourceTree = "<group>"; };
 		034E99082F19190D00C356CE /* IntroVideoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroVideoViewController.swift; sourceTree = "<group>"; };
 		034EDAFC2EF20FF700BA022C /* ivory Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ivory Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		03625F442F1A0BA600BD5CE8 /* ivory3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = ivory3.mp4; sourceTree = "<group>"; };
 		0378E4842F1066D100F5DF8C /* IAPManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPManager.swift; sourceTree = "<group>"; };
 		037B972B2F10B6C5005FF62D /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		037B972C2F10B6C5005FF62D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -77,7 +78,6 @@
 		037B97342F10B6C5005FF62D /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		037B97352F10B6C5005FF62D /* WebViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewModel.swift; sourceTree = "<group>"; };
 		037F54E92F1892A0006B58AC /* RatingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPlugin.swift; sourceTree = "<group>"; };
-		037F54EB2F18955A006B58AC /* ivory2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = ivory2.mp4; sourceTree = "<group>"; };
 		03A334C82F08D1C500684786 /* IAPPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPPlugin.swift; sourceTree = "<group>"; };
 		03A3CF4C2F00E7DA00EF5B32 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		03B2F10E2F15AA4E0048E42D /* AppDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AppDebug.entitlements; sourceTree = "<group>"; };
@@ -141,10 +141,10 @@
 				037B97342F10B6C5005FF62D /* WebView.swift */,
 				037B97352F10B6C5005FF62D /* WebViewModel.swift */,
 				034E99082F19190D00C356CE /* IntroVideoViewController.swift */,
-				037F54EB2F18955A006B58AC /* ivory2.mp4 */,
 				034E99062F18981900C356CE /* RatingManager.swift */,
 				037F54E92F1892A0006B58AC /* RatingPlugin.swift */,
 				0378E4842F1066D100F5DF8C /* IAPManager.swift */,
+				03625F442F1A0BA600BD5CE8 /* ivory3.mp4 */,
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				034EDAFD2EF20FF700BA022C /* ivory Watch App */,
@@ -282,8 +282,8 @@
 			files = (
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
+				03625F452F1A0BA600BD5CE8 /* ivory3.mp4 in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
-				037F54EC2F18955A006B58AC /* ivory2.mp4 in Resources */,
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,

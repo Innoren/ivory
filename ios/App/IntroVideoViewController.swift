@@ -18,8 +18,8 @@ class IntroVideoViewController: AVPlayerViewController {
         view.backgroundColor = .black
         
         // Get video from bundle
-        guard let videoPath = Bundle.main.path(forResource: "ivory2", ofType: "mp4") else {
-            print("❌ Video file 'ivory2.mp4' not found in bundle")
+        guard let videoPath = Bundle.main.path(forResource: "ivory3", ofType: "mp4") else {
+            print("❌ Video file 'ivory3.mp4' not found in bundle")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.handleCompletion()
             }
@@ -58,17 +58,35 @@ class IntroVideoViewController: AVPlayerViewController {
         }
         hasCompletedOnce = true
         
-        print("🎬 Requesting App Store rating...")
+        print("🎬 Stopping player and clearing video...")
         
-        // Request App Store rating
-        if let windowScene = view.window?.windowScene {
-            SKStoreReviewController.requestReview(in: windowScene)
-        }
+        // CRITICAL: Stop player and clear it to prevent frozen frame
+        player?.pause()
+        player?.replaceCurrentItem(with: nil)
+        player = nil
         
-        // Small delay to let rating dialog appear, then dismiss video
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            print("🎬 Calling onComplete callback")
-            self.onComplete?()
+        // Create a black overlay to hide any residual frame during transition
+        let blackOverlay = UIView(frame: view.bounds)
+        blackOverlay.backgroundColor = .black
+        blackOverlay.alpha = 0
+        view.addSubview(blackOverlay)
+        
+        // Fade to black
+        UIView.animate(withDuration: 0.2) {
+            blackOverlay.alpha = 1
+        } completion: { _ in
+            print("🎬 Requesting App Store rating...")
+            
+            // Request App Store rating
+            if let windowScene = self.view.window?.windowScene {
+                SKStoreReviewController.requestReview(in: windowScene)
+            }
+            
+            // Small delay to let rating dialog appear, then dismiss video
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                print("🎬 Calling onComplete callback")
+                self.onComplete?()
+            }
         }
     }
     

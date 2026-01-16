@@ -50,8 +50,8 @@ struct ContentView: View {
                 }
             } else {
                 print("❌ FAILED: Video file NOT FOUND in bundle!")
-                print("❌ You must add ivory2.mp4 to Xcode:")
-                print("   1. Drag ivory2.mp4 into Xcode Project Navigator")
+                print("❌ You must add ivory3.mp4 to Xcode:")
+                print("   1. Drag ivory3.mp4 into Xcode Project Navigator")
                 print("   2. Check 'Copy items if needed'")
                 print("   3. Check 'Add to targets: App'")
             }

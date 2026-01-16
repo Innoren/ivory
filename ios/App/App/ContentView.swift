@@ -50,8 +50,8 @@ struct ContentView: View {
                 }
             } else {
                 print("❌ FAILED: Video file NOT FOUND in bundle!")
-                print("❌ You must add ivory2.mp4 to Xcode:")
-                print("   1. Drag ivory2.mp4 into Xcode Project Navigator")
+                print("❌ You must add ivory3.mp4 to Xcode:")
+                print("   1. Drag ivory3.mp4 into Xcode Project Navigator")
                 print("   2. Check 'Copy items if needed'")
                 print("   3. Check 'Add to targets: App'")
             }
@@ -91,15 +91,19 @@ struct ContentView: View {
                 print("🎬 Video completed callback received")
                 UserDefaults.standard.set(true, forKey: "hasSeenIntroVideo")
                 print("🎬 Saved hasSeenIntroVideo = true")
+                
+                // First dismiss the video cover
                 showIntroVideo = false
                 
-                // Navigate to login/signup page after video ends
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                // Navigate to login/signup page after cover is dismissed
+                // Longer delay to ensure fullScreenCover animation completes
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     print("🎬 Navigating to login page...")
                     webViewModel.navigateToLogin()
                 }
             })
             .edgesIgnoringSafeArea(.all)
+            .background(Color.black)
         }
     }
 }
