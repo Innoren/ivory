@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import CustomerServiceChatbot from "@/components/customer-service-chatbot"
+import IOSAppBubble from "@/components/ios-app-bubble"
+import IOSAppBanner from "@/components/ios-app-banner"
 
 export default function LandingPage() {
   const router = useRouter()
@@ -409,6 +411,9 @@ export default function LandingPage() {
 
       {/* Customer Service Chatbot */}
       <CustomerServiceChatbot position="landing" />
+
+      {/* iOS App Installation Banner */}
+      <IOSAppBanner />
 
     </div>
   )
