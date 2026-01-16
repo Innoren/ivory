@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { looks, users, likes, dislikes, favorites, designRequests, designRequestMessages, designBreakdowns, aiGenerations, bookings, reviews } from '@/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { looks, users, likes, dislikes, favorites, designRequests, designRequestMessages, designBreakdowns, aiGenerations, bookings, reviews, sessions } from '@/db/schema';
+import { eq, inArray, and, or } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
@@ -9,6 +9,23 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    
+    // Get session from cookie to verify ownership
+    const cookieHeader = request.headers.get('cookie');
+    const sessionCookie = cookieHeader?.split(';').find(c => c.trim().startsWith('session='));
+    const sessionToken = sessionCookie?.split('=')[1];
+
+    let currentUserId: number | null = null;
+    
+    if (sessionToken) {
+      const session = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, sessionToken),
+      });
+      
+      if (session && new Date(session.expiresAt) > new Date()) {
+        currentUserId = session.userId;
+      }
+    }
     
     const look = await db
       .select({
@@ -32,10 +49,22 @@ export async function GET(
       .where(eq(looks.id, parseInt(id)));
 
     if (look.length === 0) {
-      return NextResponse.json({ error: 'Look not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Design not found' }, { status: 404 });
     }
 
-    return NextResponse.json(look[0]);
+    const foundLook = look[0];
+    
+    // Allow access if: look is public OR user owns the look OR no auth required for viewing
+    // For "Send to Tech" feature, user must own the look
+    const isOwner = currentUserId && foundLook.userId === currentUserId;
+    const isPublic = foundLook.isPublic;
+    
+    // If user is logged in but doesn't own the look and it's not public, deny access
+    if (currentUserId && !isOwner && !isPublic) {
+      return NextResponse.json({ error: 'Design not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(foundLook);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch look' }, { status: 500 });
   }
@@ -48,6 +77,37 @@ export async function DELETE(
   try {
     const { id } = await params;
     const lookId = parseInt(id);
+    
+    // Get session from cookie to verify ownership
+    const cookieHeader = request.headers.get('cookie');
+    const sessionCookie = cookieHeader?.split(';').find(c => c.trim().startsWith('session='));
+    const sessionToken = sessionCookie?.split('=')[1];
+
+    if (!sessionToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const session = await db.query.sessions.findFirst({
+      where: (sessions, { eq }) => eq(sessions.token, sessionToken),
+    });
+
+    if (!session || new Date(session.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // Verify ownership before deleting
+    const [existingLook] = await db
+      .select({ userId: looks.userId })
+      .from(looks)
+      .where(eq(looks.id, lookId));
+
+    if (!existingLook) {
+      return NextResponse.json({ error: 'Design not found' }, { status: 404 });
+    }
+
+    if (existingLook.userId !== session.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     
     // Delete related records first (cascade delete)
     await Promise.all([
@@ -89,7 +149,7 @@ export async function DELETE(
       .returning();
 
     if (deleted.length === 0) {
-      return NextResponse.json({ error: 'Look not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Design not found' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });

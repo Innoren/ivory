@@ -32,6 +32,11 @@ export default function PermissionsPage() {
 
   // Check current permission status on mount
   useEffect(() => {
+    // On native iOS, skip this page - permissions are handled natively
+    if (isNative()) {
+      router.replace("/home")
+      return
+    }
     checkPermissionStatus()
   }, [])
 

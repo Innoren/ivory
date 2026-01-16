@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,6 +29,7 @@ type NailLook = {
 export default function ShareWithTechPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const [look, setLook] = useState<NailLook | null>(null)
   const [techs, setTechs] = useState<NailTech[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -38,20 +39,45 @@ export default function ShareWithTechPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [designType, setDesignType] = useState<'look' | 'saved'>('look')
 
   const PRODUCTION_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.ivoryschoice.com"
 
   useEffect(() => {
-    loadLook()
+    loadDesign()
     loadTechs()
   }, [params.id])
 
-  async function loadLook() {
+  async function loadDesign() {
+    const type = searchParams.get('type')
+    
+    // Try saved-designs first (more common for new users uploading designs)
+    // Include credentials for authentication
     try {
-      const response = await fetch(`/api/looks/${params.id}`)
+      const response = await fetch(`/api/saved-designs/${params.id}`, {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const design = data.design
+        setLook({ id: design.id.toString(), imageUrl: design.imageUrl, title: design.title || 'Saved Design', createdAt: design.createdAt })
+        setDesignType('saved')
+        return
+      }
+    } catch (error) {
+      console.error('Error loading saved design:', error)
+    }
+
+    // If saved design not found, try to load as a look (AI-generated)
+    try {
+      const response = await fetch(`/api/looks/${params.id}`, {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setLook({ id: data.id.toString(), imageUrl: data.imageUrl, title: data.title, createdAt: data.createdAt })
+        setDesignType('look')
+        return
       }
     } catch (error) {
       console.error('Error loading look:', error)
@@ -80,25 +106,53 @@ export default function ShareWithTechPage() {
   }
 
   async function handleSend() {
-    if (!selectedTech) return
+    if (!selectedTech || !look) return
     setSending(true)
     const userStr = localStorage.getItem("ivoryUser")
     if (!userStr) { router.push("/"); return }
     const user = JSON.parse(userStr)
-    const lookId = Array.isArray(params.id) ? params.id[0] : (params.id as string)
+    const designId = Array.isArray(params.id) ? params.id[0] : (params.id as string)
+    
     try {
-      const res = await fetch("/api/design-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ lookId: parseInt(lookId), clientId: user.id, techId: selectedTech.id, clientMessage: message.trim() || null }),
-      })
-      if (res.ok) {
-        toast.success("Design sent successfully!")
-        setSent(true)
+      // If it's a saved design, we need to create a look first or send the image directly
+      let lookIdToSend = parseInt(designId)
+      
+      if (designType === 'saved') {
+        // Create a design request with the saved design's image URL
+        const res = await fetch("/api/design-requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ 
+            savedDesignId: parseInt(designId),
+            imageUrl: look.imageUrl,
+            clientId: user.id, 
+            techId: selectedTech.id, 
+            clientMessage: message.trim() || null 
+          }),
+        })
+        if (res.ok) {
+          toast.success("Design sent successfully!")
+          setSent(true)
+        } else {
+          const err = await res.json().catch(() => ({}))
+          toast.error(err.error || "Failed to send design")
+        }
       } else {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error || "Failed to send design")
+        // Original flow for looks
+        const res = await fetch("/api/design-requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ lookId: lookIdToSend, clientId: user.id, techId: selectedTech.id, clientMessage: message.trim() || null }),
+        })
+        if (res.ok) {
+          toast.success("Design sent successfully!")
+          setSent(true)
+        } else {
+          const err = await res.json().catch(() => ({}))
+          toast.error(err.error || "Failed to send design")
+        }
       }
     } catch (error) {
       console.error("Error sending design:", error)

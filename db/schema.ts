@@ -202,7 +202,9 @@ export const dislikes = pgTable('dislikes', {
 // Design requests sent from clients to techs
 export const designRequests = pgTable('design_requests', {
   id: serial('id').primaryKey(),
-  lookId: integer('look_id').references(() => looks.id).notNull(),
+  lookId: integer('look_id').references(() => looks.id),
+  savedDesignId: integer('saved_design_id'), // References savedDesigns.id
+  imageUrl: text('image_url'),
   clientId: integer('client_id').references(() => users.id).notNull(),
   techId: integer('tech_id').references(() => users.id).notNull(),
   status: requestStatusEnum('status').default('pending').notNull(),

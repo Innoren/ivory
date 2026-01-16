@@ -85,11 +85,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { lookId, clientId, techId, clientMessage } = body;
+    const { lookId, savedDesignId, imageUrl, clientId, techId, clientMessage } = body;
 
-    if (!lookId || !clientId || !techId) {
+    // Either lookId or (savedDesignId + imageUrl) is required
+    if (!clientId || !techId) {
       return NextResponse.json(
-        { error: 'lookId, clientId, and techId are required' },
+        { error: 'clientId and techId are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!lookId && !savedDesignId && !imageUrl) {
+      return NextResponse.json(
+        { error: 'Either lookId or savedDesignId/imageUrl is required' },
         { status: 400 }
       );
     }
@@ -97,7 +105,9 @@ export async function POST(request: Request) {
     const newRequest = await db
       .insert(designRequests)
       .values({
-        lookId: parseInt(lookId),
+        lookId: lookId ? parseInt(lookId) : null,
+        savedDesignId: savedDesignId ? parseInt(savedDesignId) : null,
+        imageUrl: imageUrl || null,
         clientId: parseInt(clientId),
         techId: parseInt(techId),
         clientMessage,
@@ -107,6 +117,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newRequest[0], { status: 201 });
   } catch (error) {
+    console.error('Error creating design request:', error);
     return NextResponse.json({ error: 'Failed to create design request' }, { status: 500 });
   }
 }
