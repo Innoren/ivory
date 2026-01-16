@@ -710,32 +710,50 @@ export default function CapturePage() {
 
   const startCamera = async () => {
     try {
-      // On native iOS, request native permissions first (shows proper app name)
-      // Then use web camera API for the UI features
+      // On native iOS, open native camera directly instead of web camera
       if (isNativeIOS()) {
-        console.log('Native iOS detected - requesting native camera permissions first')
+        console.log('📸 Native iOS detected - opening native camera directly')
         
-        // Check current permission status
         try {
-          const permissionStatus = await getCameraPermissionStatus()
-          console.log('Native camera permission status:', permissionStatus.authorized)
+          const result = await takePicture({ source: 'camera' })
           
-          if (!permissionStatus.authorized) {
-            console.log('Requesting native camera permission...')
-            const permissionResult = await requestCameraPermission()
-            console.log('Native camera permission result:', permissionResult.granted)
-            
-            if (!permissionResult.granted) {
-              alert("Camera access denied. Please allow camera permissions in Settings and try again.")
-              return
+          if (result.dataUrl) {
+            // Upload the captured image
+            try {
+              const response = await fetch(result.dataUrl)
+              const blob = await response.blob()
+              const formData = new FormData()
+              formData.append('file', blob, 'photo.jpg')
+              formData.append('type', 'image')
+
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+              })
+
+              if (uploadResponse.ok) {
+                const { url } = await uploadResponse.json()
+                setCapturedImage(url)
+                setSavedImageBeforeReplace(null)
+                console.log('✅ Native iOS photo uploaded successfully')
+              } else {
+                setCapturedImage(result.dataUrl)
+                setSavedImageBeforeReplace(null)
+                console.log('✅ Native iOS photo saved as data URL')
+              }
+            } catch (uploadError) {
+              console.error('Photo upload error:', uploadError)
+              setCapturedImage(result.dataUrl)
+              setSavedImageBeforeReplace(null)
             }
           }
-        } catch (permError) {
-          console.log('Native permission check failed, continuing with web camera:', permError)
+        } catch (error) {
+          console.error('Native camera error:', error)
+          toast.error('Camera error', {
+            description: 'Failed to capture photo. Please try again.',
+          })
         }
-        
-        // Now use web camera API for the UI (permissions already granted via native)
-        console.log('Native permissions granted, starting web camera for UI...')
+        return // Don't start web camera on iOS
       }
       
       // Only clean up if we actually have an existing stream
