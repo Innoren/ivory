@@ -851,6 +851,12 @@ export default function CapturePage() {
         
         if (result.dataUrl) {
           // Upload the captured image
+          // ========== TEMPORARY FIX START ==========
+          // This change redirects to /home after native iOS photo capture
+          // instead of staying on capture page. Remove when capture page
+          // is properly integrated with native iOS camera flow.
+          let imageUrl = result.dataUrl
+          // ========== TEMPORARY FIX END ==========
           try {
             const response = await fetch(result.dataUrl)
             const blob = await response.blob()
@@ -865,24 +871,52 @@ export default function CapturePage() {
 
             if (uploadResponse.ok) {
               const { url } = await uploadResponse.json()
-              setCapturedImage(url)
-              setSavedImageBeforeReplace(null)
+              // ========== TEMPORARY FIX START ==========
+              imageUrl = url
+              // ========== TEMPORARY FIX END ==========
               console.log('✅ Native iOS photo uploaded successfully')
             } else {
-              setCapturedImage(result.dataUrl)
-              setSavedImageBeforeReplace(null)
               console.log('✅ Native iOS photo saved as data URL')
             }
           } catch (uploadError) {
             console.error('Photo upload error:', uploadError)
-            setCapturedImage(result.dataUrl)
-            setSavedImageBeforeReplace(null)
+            // ========== TEMPORARY FIX START ==========
+            // Continue with data URL if upload fails
+            // ========== TEMPORARY FIX END ==========
           }
+          
+          // ========== TEMPORARY FIX START ==========
+          // Save the captured image to session storage for later use
+          // and navigate to home page instead of staying on capture page
+          const newTab: DesignTab = {
+            ...activeTab,
+            originalImage: imageUrl
+          }
+          localStorage.setItem("captureSession_designTabs", JSON.stringify([newTab]))
+          localStorage.setItem("captureSession_activeTabId", activeTab.id)
+          
+          // Navigate to home page after capturing photo on native iOS
+          console.log('📱 Navigating to home page after native iOS photo capture')
+          router.push('/home')
+          return
+          // ========== TEMPORARY FIX END ==========
+        } else {
+          // ========== TEMPORARY FIX START ==========
+          // No image data returned, still navigate to home
+          console.log('📱 No image data, navigating to home page')
+          router.push('/home')
+          return
+          // ========== TEMPORARY FIX END ==========
         }
       } catch (error) {
         console.error('Native camera error:', error)
+        // ========== TEMPORARY FIX START ==========
+        // Even on error, navigate to home page since capture page is hidden
+        console.log('📱 Error occurred, navigating to home page')
+        router.push('/home')
+        // ========== TEMPORARY FIX END ==========
         toast.error('Camera error', {
-          description: 'Failed to capture photo. Please try again.',
+          description: 'Failed to capture photo. Please try again from home.',
         })
       }
       return
