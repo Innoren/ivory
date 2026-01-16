@@ -652,7 +652,8 @@ export default function CapturePage() {
             // Only start camera if the active tab has no content (no image AND no designs)
             if (!activeTabToRestore.originalImage && activeTabToRestore.finalPreviews.length === 0) {
               console.log('⚠️ Active tab has no content, starting camera')
-              setTimeout(() => startCamera(), 200)
+              // Add delay to ensure NativeBridge is initialized on iOS
+              setTimeout(() => startCamera(), 300)
             } else {
               console.log('✅ Active tab has content, NOT starting camera')
             }
@@ -673,7 +674,8 @@ export default function CapturePage() {
       // No existing tabs with content - check if we have a capturedImage before starting camera
       if (!capturedImage) {
         console.log('⚠️ No saved tabs and no capturedImage, starting camera')
-        startCamera()
+        // Add delay to ensure NativeBridge is initialized on iOS
+        setTimeout(() => startCamera(), 300)
       } else {
         console.log('✅ Have capturedImage, NOT starting camera')
       }
@@ -709,53 +711,20 @@ export default function CapturePage() {
   }, [activeTabId])
 
   const startCamera = async () => {
+    // On native iOS, don't start web camera at all - user will tap capture button to open native camera
+    if (isNativeIOS()) {
+      console.log('📸 Native iOS detected - waiting for user to tap capture button')
+      return // Don't start web camera on iOS
+    }
+    
+    // Double-check after a small delay to ensure NativeBridge is initialized
+    await new Promise(resolve => setTimeout(resolve, 100))
+    if (isNativeIOS()) {
+      console.log('📸 Native iOS detected (delayed check) - waiting for user to tap capture button')
+      return // Don't start web camera on iOS
+    }
+    
     try {
-      // On native iOS, open native camera directly instead of web camera
-      if (isNativeIOS()) {
-        console.log('📸 Native iOS detected - opening native camera directly')
-        
-        try {
-          const result = await takePicture({ source: 'camera' })
-          
-          if (result.dataUrl) {
-            // Upload the captured image
-            try {
-              const response = await fetch(result.dataUrl)
-              const blob = await response.blob()
-              const formData = new FormData()
-              formData.append('file', blob, 'photo.jpg')
-              formData.append('type', 'image')
-
-              const uploadResponse = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-              })
-
-              if (uploadResponse.ok) {
-                const { url } = await uploadResponse.json()
-                setCapturedImage(url)
-                setSavedImageBeforeReplace(null)
-                console.log('✅ Native iOS photo uploaded successfully')
-              } else {
-                setCapturedImage(result.dataUrl)
-                setSavedImageBeforeReplace(null)
-                console.log('✅ Native iOS photo saved as data URL')
-              }
-            } catch (uploadError) {
-              console.error('Photo upload error:', uploadError)
-              setCapturedImage(result.dataUrl)
-              setSavedImageBeforeReplace(null)
-            }
-          }
-        } catch (error) {
-          console.error('Native camera error:', error)
-          toast.error('Camera error', {
-            description: 'Failed to capture photo. Please try again.',
-          })
-        }
-        return // Don't start web camera on iOS
-      }
-      
       // Only clean up if we actually have an existing stream
       if (streamRef.current) {
         console.log('Cleaning up existing camera stream before starting new one')
@@ -3149,43 +3118,60 @@ export default function CapturePage() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Video element - now shown on all platforms including native iOS */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-full h-full object-cover transition-all duration-500"
-          style={{
-            transform: `${facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'} scale(${zoom})`,
-            filter: 'brightness(1.08) contrast(1.08) saturate(1.15)',
-            opacity: isFlipping ? 0 : 1,
-            transition: 'transform 0.3s ease-out, opacity 0.5s ease-out',
-          }}
-        />
-
-        {/* Hand Reference Overlay */}
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[5] overflow-visible">
-          <style jsx>{`
-            @keyframes elegant-pulse {
-              0%, 100% { opacity: ${shouldShowOnboarding && onboardingStep === 0 ? '0.15' : '0.4'}; transform: scale(1); }
-              50% { opacity: ${shouldShowOnboarding && onboardingStep === 0 ? '0.25' : '0.7'}; transform: scale(1.02); }
-            }
-            .hand-outline {
-              animation: elegant-pulse 3s ease-in-out infinite;
-            }
-          `}</style>
-          <img
-            src="/ref2.png"
-            alt="Hand reference"
-            className="hand-outline w-full h-full object-contain transition-all duration-700"
+        {/* Video element - only show on web, not on native iOS */}
+        {!isNativeIOS() && (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover transition-all duration-500"
             style={{
-              transform: 'scale(4.35)',
-              mixBlendMode: 'screen',
-              filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)) brightness(1.1)',
+              transform: `${facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'} scale(${zoom})`,
+              filter: 'brightness(1.08) contrast(1.08) saturate(1.15)',
+              opacity: isFlipping ? 0 : 1,
+              transition: 'transform 0.3s ease-out, opacity 0.5s ease-out',
             }}
           />
-        </div>
+        )}
+        
+        {/* Native iOS: Show capture button instead of video */}
+        {isNativeIOS() && (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#1A1A1A] via-black to-[#1A1A1A]">
+            <button
+              onClick={capturePhoto}
+              className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 active:scale-95"
+            >
+              <Camera className="w-16 h-16 text-white" strokeWidth={1.5} />
+              <span className="text-white text-lg font-light tracking-wider uppercase">Tap to Capture</span>
+            </button>
+          </div>
+        )}
+
+        {/* Hand Reference Overlay - only show on web */}
+        {!isNativeIOS() && (
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[5] overflow-visible">
+            <style jsx>{`
+              @keyframes elegant-pulse {
+                0%, 100% { opacity: ${shouldShowOnboarding && onboardingStep === 0 ? '0.15' : '0.4'}; transform: scale(1); }
+                50% { opacity: ${shouldShowOnboarding && onboardingStep === 0 ? '0.25' : '0.7'}; transform: scale(1.02); }
+              }
+              .hand-outline {
+                animation: elegant-pulse 3s ease-in-out infinite;
+              }
+            `}</style>
+            <img
+              src="/ref2.png"
+              alt="Hand reference"
+              className="hand-outline w-full h-full object-contain transition-all duration-700"
+              style={{
+                transform: 'scale(4.35)',
+                mixBlendMode: 'screen',
+                filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)) brightness(1.1)',
+              }}
+            />
+          </div>
+        )}
 
         {isFlipping && (
           <div className="absolute inset-0 bg-gradient-to-b from-[#1A1A1A] to-black flex items-center justify-center backdrop-blur-sm z-50">
@@ -3282,23 +3268,25 @@ export default function CapturePage() {
           </div>
         )}
 
-        {/* Elegant Right Side Controls */}
-        <div className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-4 animate-fade-in-delayed">
-          {/* Flip Camera Button */}
-          <button
-            onClick={flipCamera}
-            disabled={isFlipping}
-            className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full backdrop-blur-md border flex flex-col items-center justify-center transition-all duration-500 active:scale-95 ${
-              facingMode === "environment"
-                ? "bg-white/95 border-white/50 text-[#1A1A1A] shadow-2xl"
-                : "bg-white/10 border-white/20 hover:bg-white/20 text-white shadow-xl"
-            } ${isFlipping ? "opacity-50" : ""}`}
-          >
-            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-        </div>
+        {/* Elegant Right Side Controls - only show on web */}
+        {!isNativeIOS() && (
+          <div className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-4 animate-fade-in-delayed">
+            {/* Flip Camera Button */}
+            <button
+              onClick={flipCamera}
+              disabled={isFlipping}
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full backdrop-blur-md border flex flex-col items-center justify-center transition-all duration-500 active:scale-95 ${
+                facingMode === "environment"
+                  ? "bg-white/95 border-white/50 text-[#1A1A1A] shadow-2xl"
+                  : "bg-white/10 border-white/20 hover:bg-white/20 text-white shadow-xl"
+              } ${isFlipping ? "opacity-50" : ""}`}
+            >
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Elegant Bottom Controls */}
         <div className="absolute bottom-0 left-0 right-0 pb-8 sm:pb-10 pt-8 px-6 z-10 bg-gradient-to-t from-black/60 via-black/30 to-transparent backdrop-blur-sm">
