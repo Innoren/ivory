@@ -72,12 +72,9 @@ export default function IOSAppBubble() {
             {/* Content */}
             <div className="flex-1 min-w-0 pt-1">
               <div className="mb-4">
-                <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-2 tracking-tight">
+                <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">
                   Get the iOS App
                 </h3>
-                <p className="text-sm sm:text-base text-[#6B6B6B] font-light leading-relaxed tracking-wide">
-                  Experience the full power of Ivory's Choice with our native iOS app
-                </p>
               </div>
 
               {/* Download Button */}
@@ -88,22 +85,6 @@ export default function IOSAppBubble() {
                 <Download className="w-4 h-4 group-hover:animate-bounce" />
                 Download Now
               </button>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="mt-6 pt-6 border-t border-[#E8E8E8] grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-lg sm:text-xl font-light text-[#1A1A1A] mb-1">✨</div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light">Native</p>
-            </div>
-            <div>
-              <div className="text-lg sm:text-xl font-light text-[#1A1A1A] mb-1">⚡</div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light">Fast</p>
-            </div>
-            <div>
-              <div className="text-lg sm:text-xl font-light text-[#1A1A1A] mb-1">🎨</div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light">Beautiful</p>
             </div>
           </div>
         </div>
