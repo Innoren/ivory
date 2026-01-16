@@ -493,98 +493,98 @@ function AuthPageContent() {
         </button>
       )}
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl relative z-10">
         {/* Main Card with Enhanced Shadow */}
-        <div className="bg-white border border-[#E8E8E8] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] transition-all duration-700 p-6 sm:p-8 md:p-10 relative overflow-hidden rounded-2xl">
+        <div className="bg-white border border-[#E8E8E8] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] transition-all duration-700 p-6 sm:p-10 md:p-12 lg:p-14 relative overflow-hidden rounded-2xl">
           {/* Subtle Top Accent with shimmer */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#8B7355] to-transparent opacity-60 animate-shimmer-subtle" />
           
           {/* Header Section */}
-          <div className="text-center mb-8 sm:mb-10">
-            <div className="flex justify-center items-center gap-3 mb-5">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <div className="flex justify-center items-center gap-3 md:gap-4 mb-5 md:mb-6">
               <div className="relative animate-float-gentle">
                 <div className="absolute inset-0 bg-[#8B7355] opacity-10 blur-xl rounded-full animate-glow-pulse" />
                 <Image 
                   src="/Web_logo.png" 
                   alt="Ivory's Choice" 
-                  width={64}
-                  height={64}
-                  className="h-14 sm:h-16 w-auto relative z-10"
+                  width={80}
+                  height={80}
+                  className="h-14 sm:h-16 md:h-20 w-auto relative z-10"
                   priority
                 />
               </div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight">
+              <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-[#1A1A1A] tracking-tight">
                 IVORY'S CHOICE
               </h1>
             </div>
             
-            <p className="text-xs sm:text-sm tracking-widest uppercase text-[#6B6B6B] font-light mb-5">
+            <p className="text-xs sm:text-sm md:text-base tracking-widest uppercase text-[#6B6B6B] font-light mb-5 md:mb-6">
               {referralCode ? "✨ Exclusive Invitation" : isSignUp ? "Begin Your Journey" : "Welcome Back"}
             </p>
             
             {/* Enhanced Account Toggle */}
-            <div className="inline-flex items-center gap-2 px-5 py-3 border border-[#E8E8E8] bg-gradient-to-br from-[#FAFAF8] to-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-500 hover:scale-[1.02]">
-              <span className="text-xs tracking-wide text-[#6B6B6B] font-light">
+            <div className="inline-flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-4 border border-[#E8E8E8] bg-gradient-to-br from-[#FAFAF8] to-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-500 hover:scale-[1.02]">
+              <span className="text-xs md:text-sm tracking-wide text-[#6B6B6B] font-light">
                 {isSignUp ? "Already have an account?" : "New to Ivory's Choice?"}
               </span>
               <button 
                 type="button" 
                 onClick={() => setIsSignUp(!isSignUp)} 
-                className="text-sm font-medium text-[#8B7355] hover:text-[#1A1A1A] transition-all duration-300 underline decoration-[#8B7355] decoration-2 underline-offset-4 touch-manipulation hover:decoration-[#1A1A1A]"
+                className="text-sm md:text-base font-medium text-[#8B7355] hover:text-[#1A1A1A] transition-all duration-300 underline decoration-[#8B7355] decoration-2 underline-offset-4 touch-manipulation hover:decoration-[#1A1A1A]"
               >
                 {isSignUp ? "Sign in" : "Create account"}
               </button>
             </div>
             
             {referralCode && (
-              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8B7355]/10 to-[#8B7355]/5 border border-[#8B7355]/20 rounded-lg hover:scale-[1.02] transition-transform duration-300">
-                <svg className="w-4 h-4 text-[#8B7355] animate-float-gentle" fill="currentColor" viewBox="0 0 20 20">
+              <div className="mt-4 md:mt-5 inline-flex items-center gap-2 md:gap-3 px-4 md:px-5 py-2 md:py-3 bg-gradient-to-r from-[#8B7355]/10 to-[#8B7355]/5 border border-[#8B7355]/20 rounded-lg hover:scale-[1.02] transition-transform duration-300">
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-[#8B7355] animate-float-gentle" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
-                <p className="text-xs text-[#8B7355] font-medium">2 complimentary credits included</p>
+                <p className="text-xs md:text-sm text-[#8B7355] font-medium">2 complimentary credits included</p>
               </div>
             )}
           </div>
 
           {/* Form Section */}
-          <form onSubmit={handleAuth} className="space-y-5 sm:space-y-6">
-            <div className="space-y-2">
-              <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Username</label>
+          <form onSubmit={handleAuth} className="space-y-5 sm:space-y-6 md:space-y-7">
+            <div className="space-y-2 md:space-y-3">
+              <label className="block text-[11px] md:text-xs tracking-widest uppercase text-[#6B6B6B] mb-2.5 md:mb-3 font-medium">Username</label>
               <Input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
+                className="h-12 sm:h-14 md:h-16 text-base md:text-lg border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
                 required
               />
             </div>
             
             {isSignUp && (
-              <div className="space-y-2">
-                <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Email</label>
+              <div className="space-y-2 md:space-y-3">
+                <label className="block text-[11px] md:text-xs tracking-widest uppercase text-[#6B6B6B] mb-2.5 md:mb-3 font-medium">Email</label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
+                  className="h-12 sm:h-14 md:h-16 text-base md:text-lg border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
                   required
                 />
               </div>
             )}
 
             {isSignUp && (
-              <div className="space-y-2">
-                <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Date of Birth</label>
+              <div className="space-y-2 md:space-y-3">
+                <label className="block text-[11px] md:text-xs tracking-widest uppercase text-[#6B6B6B] mb-2.5 md:mb-3 font-medium">Date of Birth</label>
                 <Input
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
+                  className="h-12 sm:h-14 md:h-16 text-base md:text-lg border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
                   max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
                 />
-                <p className="text-[10px] text-[#6B6B6B] font-light">Must be at least 13 years old</p>
+                <p className="text-[10px] md:text-xs text-[#6B6B6B] font-light">Must be at least 13 years old</p>
               </div>
             )}
 
@@ -658,29 +658,29 @@ function AuthPageContent() {
             )}
             */}
             
-            <div className="relative space-y-2">
-              <label className="block text-[11px] tracking-widest uppercase text-[#6B6B6B] mb-2.5 font-medium">Password</label>
+            <div className="relative space-y-2 md:space-y-3">
+              <label className="block text-[11px] md:text-xs tracking-widest uppercase text-[#6B6B6B] mb-2.5 md:mb-3 font-medium">Password</label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="h-12 sm:h-14 text-base border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 pr-12 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
+                  className="h-12 sm:h-14 md:h-16 text-base md:text-lg border-[#E8E8E8] rounded-lg focus:border-[#8B7355] focus:ring-2 focus:ring-[#8B7355]/20 pr-12 md:pr-14 font-light touch-manipulation bg-white hover:border-[#8B7355]/50 placeholder:text-[#CCCCCC] input-focus-glow hover:shadow-md"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#6B6B6B] hover:text-[#8B7355] transition-all duration-300 touch-manipulation rounded-lg hover:bg-[#FAFAF8] hover:scale-110"
+                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 text-[#6B6B6B] hover:text-[#8B7355] transition-all duration-300 touch-manipulation rounded-lg hover:bg-[#FAFAF8] hover:scale-110"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 transition-transform duration-300">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6 transition-transform duration-300">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -690,10 +690,10 @@ function AuthPageContent() {
             </div>
 
             {isSignUp && (
-              <div className="border border-[#E8E8E8] bg-gradient-to-br from-[#FAFAF8] to-white p-5 sm:p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-500">
+              <div className="border border-[#E8E8E8] bg-gradient-to-br from-[#FAFAF8] to-white p-5 sm:p-6 md:p-7 rounded-lg shadow-sm hover:shadow-md transition-all duration-500">
                 <label 
                   htmlFor="terms-checkbox" 
-                  className="flex items-start gap-4 cursor-pointer group"
+                  className="flex items-start gap-4 md:gap-5 cursor-pointer group"
                 >
                   <div className="relative flex-shrink-0 mt-0.5">
                     <input
@@ -701,11 +701,11 @@ function AuthPageContent() {
                       id="terms-checkbox"
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="peer h-5 w-5 cursor-pointer appearance-none rounded border-2 border-[#E8E8E8] bg-white transition-all duration-500 checked:border-[#8B7355] checked:bg-[#8B7355] hover:border-[#8B7355] hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#8B7355]/30 focus:ring-offset-2 touch-manipulation"
+                      className="peer h-5 w-5 md:h-6 md:w-6 cursor-pointer appearance-none rounded border-2 border-[#E8E8E8] bg-white transition-all duration-500 checked:border-[#8B7355] checked:bg-[#8B7355] hover:border-[#8B7355] hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#8B7355]/30 focus:ring-offset-2 touch-manipulation"
                       required
                     />
                     <svg 
-                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-all duration-300 peer-checked:scale-110" 
+                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-white opacity-0 peer-checked:opacity-100 transition-all duration-300 peer-checked:scale-110" 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor" 
@@ -716,7 +716,7 @@ function AuthPageContent() {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm sm:text-[13px] text-[#1A1A1A] font-light leading-relaxed">
+                    <p className="text-sm sm:text-[13px] md:text-base text-[#1A1A1A] font-light leading-relaxed">
                       I agree to the{" "}
                       <button
                         type="button"
@@ -742,7 +742,7 @@ function AuthPageContent() {
                         Privacy Policy
                       </button>
                     </p>
-                    <p className="text-xs text-[#6B6B6B] font-light leading-relaxed mt-2.5 tracking-wide">
+                    <p className="text-xs md:text-sm text-[#6B6B6B] font-light leading-relaxed mt-2.5 tracking-wide">
                       Including our zero-tolerance policy for objectionable content and abusive behavior.
                     </p>
                   </div>
@@ -752,18 +752,18 @@ function AuthPageContent() {
 
             <Button 
               type="submit" 
-              className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#1A1A1A] to-[#2A2A2A] text-white hover:from-[#8B7355] hover:to-[#9B8365] text-xs tracking-widest uppercase rounded-lg font-medium mt-7 touch-manipulation shadow-lg button-hover-lift"
+              className="w-full h-12 sm:h-14 md:h-16 bg-gradient-to-r from-[#1A1A1A] to-[#2A2A2A] text-white hover:from-[#8B7355] hover:to-[#9B8365] text-xs md:text-sm tracking-widest uppercase rounded-lg font-medium mt-7 md:mt-8 touch-manipulation shadow-lg button-hover-lift"
             >
               {isSignUp ? "Create Account" : "Sign In"}
             </Button>
           </form>
 
           {!isSignUp && (
-            <div className="mt-6 text-center">
+            <div className="mt-6 md:mt-7 text-center">
               <button 
                 type="button" 
                 onClick={() => router.push('/forgot-password')} 
-                className="text-sm text-[#6B6B6B] hover:text-[#8B7355] transition-all duration-300 font-light touch-manipulation underline decoration-1 underline-offset-4 hover:decoration-2 hover:scale-105 inline-block"
+                className="text-sm md:text-base text-[#6B6B6B] hover:text-[#8B7355] transition-all duration-300 font-light touch-manipulation underline decoration-1 underline-offset-4 hover:decoration-2 hover:scale-105 inline-block"
               >
                 Forgot password?
               </button>
@@ -771,8 +771,8 @@ function AuthPageContent() {
           )}
 
           {/* Footer Links */}
-          <div className="mt-8 pt-6 border-t border-[#E8E8E8] text-center">
-            <div className="flex items-center justify-center gap-4 text-xs tracking-wider text-[#6B6B6B] font-light">
+          <div className="mt-8 md:mt-10 pt-6 md:pt-7 border-t border-[#E8E8E8] text-center">
+            <div className="flex items-center justify-center gap-4 md:gap-5 text-xs md:text-sm tracking-wider text-[#6B6B6B] font-light">
               <button 
                 type="button"
                 onClick={() => router.push('/privacy-policy')}
