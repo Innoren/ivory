@@ -171,6 +171,19 @@ export default function ShareWithTechPage() {
             </div>
           </div>
         )}
+        {/* Message input - shown when tech is selected */}
+        {selectedTech && (
+          <div className="mb-6">
+            <label className="text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] mb-3 block font-light">Add a Message (Optional)</label>
+            <Textarea placeholder="Any special requests or notes..." value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className="border-[#E8E8E8] rounded-none text-sm font-light resize-none bg-[#F8F7F5]" />
+          </div>
+        )}
+
+        {/* Send button - ABOVE nail techs on mobile for better UX */}
+        <Button onClick={handleSend} disabled={!selectedTech || sending || loading} className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light disabled:opacity-50 mb-8">
+          {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-5 h-5 mr-3" strokeWidth={1.5} />{selectedTech ? `Send to ${selectedTech.name}` : "Select a Nail Tech"}</>}
+        </Button>
+
         <div className="mb-6">
           <label className="text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] mb-3 block font-light flex items-center gap-2">
             <Search className="w-4 h-4" strokeWidth={1.5} />
@@ -214,15 +227,6 @@ export default function ShareWithTechPage() {
             {filteredTechs.length === 0 && <p className="text-center text-[#6B6B6B] py-12 font-light">No techs found</p>}
           </div>
         )}
-        {selectedTech && (
-          <div className="mb-8">
-            <label className="text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] mb-3 block font-light">Add a Message (Optional)</label>
-            <Textarea placeholder="Any special requests or notes..." value={message} onChange={(e) => setMessage(e.target.value)} rows={4} className="border-[#E8E8E8] rounded-none text-sm font-light resize-none bg-[#F8F7F5]" />
-          </div>
-        )}
-        <Button onClick={handleSend} disabled={!selectedTech || sending || loading} className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light disabled:opacity-50">
-          {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-5 h-5 mr-3" strokeWidth={1.5} />{selectedTech ? `Send to ${selectedTech.name}` : "Select a Nail Tech"}</>}
-        </Button>
         <div className="mt-8 border border-[#E8E8E8] p-6 bg-[#F8F7F5] text-center">
           <p className="text-sm text-[#6B6B6B] leading-relaxed font-light">Your nail tech will receive your design and can use it as inspiration for your next appointment.</p>
         </div>
