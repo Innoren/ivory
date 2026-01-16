@@ -99,9 +99,10 @@ struct WebView: UIViewRepresentable {
                         --safe-area-inset-right: \(safeAreaInsets.right)px;
                     }
                     
-                    /* Add padding to body for external pages (like Stripe checkout) */
+                    /* Add extra padding to body for external pages (like Stripe checkout) */
+                    /* Using safe area + 40px extra to push content well below the notch */
                     body {
-                        padding-top: \(safeAreaInsets.top)px !important;
+                        padding-top: \(safeAreaInsets.top + 40)px !important;
                     }
                     
                     /* Don't double-pad our own app pages that handle safe area themselves */
