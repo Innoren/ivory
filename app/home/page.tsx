@@ -48,6 +48,7 @@ export default function HomePage() {
   const [myBookings, setMyBookings] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [designRequests, setDesignRequests] = useState<any[]>([])
+  const [lastBookedTech, setLastBookedTech] = useState<any>(null)
   const isWatch = useIsAppleWatch()
   const [isNative, setIsNative] = useState(false)
 
@@ -187,7 +188,27 @@ export default function HomePage() {
       
       const data = await response.json()
       if (response.ok) {
-        setMyBookings(data.bookings || [])
+        const bookings = data.bookings || []
+        setMyBookings(bookings)
+        
+        // Find the last booked tech (most recent booking with a tech profile)
+        const sortedBookings = [...bookings].sort((a, b) => 
+          new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime()
+        )
+        const lastBooking = sortedBookings.find(b => b.techProfile)
+        if (lastBooking?.techProfile) {
+          setLastBookedTech({
+            id: lastBooking.techProfile.id,
+            businessName: lastBooking.techProfile.businessName,
+            username: lastBooking.techProfile.user?.username,
+            location: lastBooking.techProfile.location,
+            rating: lastBooking.techProfile.rating,
+            totalReviews: lastBooking.techProfile.totalReviews,
+            portfolioImages: lastBooking.techProfile.portfolioImages,
+            isVerified: lastBooking.techProfile.isVerified,
+            lastBookingDate: lastBooking.appointmentDate
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching bookings:', error)
@@ -294,8 +315,8 @@ export default function HomePage() {
           <AnimatedTabs
             tabs={[
               { id: 'designs', label: 'Designs' },
-              { id: 'search', label: 'Find Tech' },
-              { id: 'bookings', label: 'Bookings', count: myBookings.length }
+              { id: 'bookings', label: 'Bookings', count: myBookings.length },
+              { id: 'search', label: 'My Tech' }
             ]}
             activeTab={activeTab}
             onTabChange={(tabId) => setActiveTab(tabId as 'designs' | 'search' | 'bookings')}
@@ -308,8 +329,8 @@ export default function HomePage() {
         {/* My Designs Tab */}
         {activeTab === 'designs' && (
           <div className="tab-content-enter page-container">
-            {/* Credits/Subscription Banner - Hidden on Watch */}
-            {showReferralBanner && !isWatch && (
+            {/* Credits/Subscription Banner - Hidden on Watch - Only show for paid users */}
+            {showReferralBanner && !isWatch && subscriptionTier !== 'free' && subscriptionStatus === 'active' && (
               <div className={`mb-4 sm:mb-6 relative transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
                 <div className="border border-[#E8E8E8] p-4 sm:p-6 relative bg-[#F8F7F5] transition-all duration-300 hover:shadow-sm">
                   {/* Close button */}
@@ -321,57 +342,28 @@ export default function HomePage() {
                   </button>
 
                   <div className="max-w-2xl pr-6">
-                    {subscriptionTier !== 'free' && subscriptionStatus === 'active' ? (
-                      // Paid users - show referral program
-                      <>
-                        <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white transition-all duration-500 hover:border-[#8B7355] hover:scale-105">
-                            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B7355] transition-transform duration-500 hover:rotate-12" strokeWidth={1} />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] mb-1 tracking-tight">
-                              Referral Program
-                            </h3>
-                            <p className="text-xs sm:text-sm text-[#6B6B6B] leading-relaxed font-light">
-                              Refer 3 friends and receive <span className="text-[#1A1A1A] font-normal">1 complimentary credit</span>
-                            </p>
-                          </div>
-                        </div>
+                    {/* Paid users - show referral program */}
+                    <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white transition-all duration-500 hover:border-[#8B7355] hover:scale-105">
+                        <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B7355] transition-transform duration-500 hover:rotate-12" strokeWidth={1} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] mb-1 tracking-tight">
+                          Referral Program
+                        </h3>
+                        <p className="text-xs sm:text-sm text-[#6B6B6B] leading-relaxed font-light">
+                          Refer 3 friends and receive <span className="text-[#1A1A1A] font-normal">1 complimentary credit</span>
+                        </p>
+                      </div>
+                    </div>
 
-                        <Button
-                          onClick={() => router.push('/settings/credits')}
-                          className="h-10 sm:h-11 bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-500 px-5 sm:px-6 text-[10px] sm:text-xs tracking-widest uppercase rounded-none font-light"
-                        >
-                          <Share2 className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
-                          Get Link
-                        </Button>
-                      </>
-                    ) : (
-                      // Free users - show upgrade prompt
-                      <>
-                        <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white transition-all duration-500 hover:border-[#8B7355] hover:scale-105">
-                            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B7355] transition-transform duration-500 hover:rotate-12" strokeWidth={1} />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] mb-1 tracking-tight">
-                              Upgrade Your Plan
-                            </h3>
-                            <p className="text-xs sm:text-sm text-[#6B6B6B] leading-relaxed font-light">
-                              Get <span className="text-[#1A1A1A] font-normal">monthly credits</span> and purchase more anytime
-                            </p>
-                          </div>
-                        </div>
-
-                        <Button
-                          onClick={() => router.push('/billing')}
-                          className="h-10 sm:h-11 bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-500 px-5 sm:px-6 text-[10px] sm:text-xs tracking-widest uppercase rounded-none font-light"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
-                          View Plans
-                        </Button>
-                      </>
-                    )}
+                    <Button
+                      onClick={() => router.push('/settings/credits')}
+                      className="h-10 sm:h-11 bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-500 px-5 sm:px-6 text-[10px] sm:text-xs tracking-widest uppercase rounded-none font-light"
+                    >
+                      <Share2 className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.5} />
+                      Get Link
+                    </Button>
 
                     {credits !== null && (
                       <p className="text-[10px] sm:text-xs tracking-wider text-[#6B6B6B] mt-3 font-light uppercase">
@@ -576,16 +568,111 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Find Nail Tech Tab */}
+        {/* My Tech Tab (formerly Find Nail Tech) */}
         {activeTab === 'search' && (
           <div className="tab-content-enter page-container space-y-8 sm:space-y-12 lg:space-y-16">
+            {/* Last Booked Tech Section */}
+            {lastBookedTech && (
+              <div>
+                <div className="text-center space-y-3 sm:space-y-5 mb-6 sm:mb-8">
+                  <p className="text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-[#8B7355] font-light">
+                    Your Nail Tech
+                  </p>
+                  <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-light text-[#1A1A1A] tracking-[-0.01em] leading-[1.1]">
+                    Last Booked
+                  </h2>
+                </div>
+
+                <div className="max-w-2xl mx-auto mb-8 sm:mb-12">
+                  <div
+                    className="group cursor-pointer border border-[#8B7355] bg-[#F8F7F5] transition-all duration-700 hover:shadow-2xl hover:shadow-[#8B7355]/10"
+                    onClick={() => router.push(`/tech/${lastBookedTech.id}`)}
+                  >
+                    {/* Portfolio Image */}
+                    {lastBookedTech.portfolioImages && lastBookedTech.portfolioImages.length > 0 ? (
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        <Image
+                          src={lastBookedTech.portfolioImages[0].imageUrl}
+                          alt={lastBookedTech.businessName || lastBookedTech.username}
+                          fill
+                          className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, 672px"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-[#8B7355] text-white border-0 text-[10px] tracking-[0.2em] uppercase font-light">
+                            Your Tech
+                          </Badge>
+                        </div>
+                        {lastBookedTech.isVerified && (
+                          <div className="absolute top-4 right-4">
+                            <Badge className="bg-white/95 text-[#1A1A1A] border-0 text-[10px] tracking-[0.2em] uppercase font-light">
+                              Verified
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="aspect-[16/9] bg-[#E8E8E8] flex items-center justify-center">
+                        <Sparkles className="w-16 h-16 text-[#D0D0D0]" strokeWidth={1} />
+                      </div>
+                    )}
+
+                    {/* Tech Info */}
+                    <div className="p-5 sm:p-8 space-y-4 sm:space-y-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h4 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-2 tracking-tight">
+                            {lastBookedTech.businessName || lastBookedTech.username}
+                          </h4>
+                          <div className="flex items-center gap-1.5 text-sm text-[#6B6B6B] font-light">
+                            <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            {lastBookedTech.location || 'Location not set'}
+                          </div>
+                        </div>
+                        {/* Rating */}
+                        <div className="flex items-center gap-2">
+                          <Star className="h-4 w-4 fill-[#8B7355] text-[#8B7355]" strokeWidth={1.5} />
+                          <span className="text-base font-light text-[#1A1A1A]">{lastBookedTech.rating || '0.00'}</span>
+                          <span className="text-xs text-[#6B6B6B] font-light">({lastBookedTech.totalReviews || 0})</span>
+                        </div>
+                      </div>
+
+                      {lastBookedTech.lastBookingDate && (
+                        <p className="text-xs text-[#6B6B6B] font-light">
+                          Last appointment: {new Date(lastBookedTech.lastBookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      )}
+
+                      <Button
+                        className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] h-12 sm:h-14 text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/book/${lastBookedTech.id}`);
+                        }}
+                      >
+                        Book Again
+                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-4 max-w-4xl mx-auto mb-8 sm:mb-12">
+                  <div className="flex-1 h-px bg-[#E8E8E8]"></div>
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-[#6B6B6B] font-light">Or Find New</span>
+                  <div className="flex-1 h-px bg-[#E8E8E8]"></div>
+                </div>
+              </div>
+            )}
+
             {/* Search Hero Section */}
             <div className="text-center space-y-3 sm:space-y-5">
               <p className="text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-[#8B7355] font-light">
                 Discover
               </p>
               <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em] leading-[1.1]">
-                Find Your Perfect Match
+                Find {lastBookedTech ? 'Another' : 'Your Perfect'} Match
               </h2>
               <p className="text-sm sm:text-base text-[#6B6B6B] leading-[1.6] font-light max-w-2xl mx-auto tracking-wide">
                 Connect with skilled nail technicians
