@@ -364,7 +364,7 @@ export function CreateManualBookingDialog({
                     <span className="text-[#1A1A1A] font-medium">${parseFloat(selectedServiceData.price).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[12px] sm:text-[13px]">
-                    <span className="text-[#6B6B6B] font-light">Convenience fee (15%)</span>
+                    <span className="text-[#6B6B6B] font-light">Service fee (15%)</span>
                     <span className="text-[#1A1A1A] font-medium">${(parseFloat(selectedServiceData.price) * 0.15).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[14px] sm:text-[15px] font-medium pt-2 border-t border-[#E8E8E8]/50">

@@ -318,7 +318,7 @@ export default function BookingInvitePage() {
             
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <p className="text-[12px] text-[#6B6B6B]">Convenience fee (15%)</p>
+                <p className="text-[12px] text-[#6B6B6B]">Service fee (15%)</p>
                 <div className="group relative">
                   <Info className="w-3.5 h-3.5 text-[#8B7355] cursor-help" strokeWidth={2} />
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">

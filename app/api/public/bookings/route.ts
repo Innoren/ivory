@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate prices
     const servicePrice = parseFloat(service.price || '0');
-    const serviceFee = servicePrice * 0.15; // 15% convenience fee
+    const serviceFee = servicePrice * 0.15; // 15% service fee
     const totalPrice = servicePrice + serviceFee;
 
     // Create booking (with or without clientId for guest bookings)
