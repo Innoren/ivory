@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Calendar, Clock, User, XCircle, CheckCircle2, ArrowLeft, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, User, XCircle, CheckCircle2, ArrowLeft, AlertTriangle, MessageCircle, Plus, Link2, Send } from 'lucide-react';
 import { BottomNav } from '@/components/bottom-nav';
 import { toast } from 'sonner';
+import { CreateManualBookingDialog } from '@/components/create-manual-booking-dialog';
 
 export default function TechBookingsPage() {
   const router = useRouter();
@@ -20,9 +21,14 @@ export default function TechBookingsPage() {
   const [actionType, setActionType] = useState<'cancel' | 'no_show' | 'complete' | null>(null);
   const [cancellationReason, setCancellationReason] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showManualBookingDialog, setShowManualBookingDialog] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
+  const [availability, setAvailability] = useState<any[]>([]);
+  const [timeOff, setTimeOff] = useState<any[]>([]);
 
   useEffect(() => {
     fetchBookings();
+    fetchTechData();
   }, []);
 
   const fetchBookings = async () => {
@@ -55,6 +61,32 @@ export default function TechBookingsPage() {
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
+    }
+  };
+
+  const fetchTechData = async () => {
+    try {
+      const userStr = localStorage.getItem('ivoryUser');
+      if (!userStr) return;
+
+      const user = JSON.parse(userStr);
+      
+      // Fetch tech profile with services
+      const techRes = await fetch(`/api/tech/${user.techProfileId || user.id}`);
+      if (techRes.ok) {
+        const data = await techRes.json();
+        setServices(data.tech?.services || []);
+      }
+
+      // Fetch availability
+      const availRes = await fetch(`/api/tech/availability?techProfileId=${user.techProfileId || user.id}`);
+      if (availRes.ok) {
+        const data = await availRes.json();
+        setAvailability(data.availability || []);
+        setTimeOff(data.timeOff || []);
+      }
+    } catch (error) {
+      console.error('Error fetching tech data:', error);
     }
   };
 
@@ -135,6 +167,50 @@ export default function TechBookingsPage() {
             You'll receive ${booking.servicePrice} after completion.
           </p>
         </>
+      ) : booking.isManualBooking && booking.inviteToken ? (
+        <div className="space-y-2">
+          <div className="p-2.5 sm:p-3 bg-[#8B7355]/10 border border-[#8B7355]/20 rounded">
+            <p className="text-xs sm:text-sm text-[#8B7355] font-light leading-relaxed mb-2">
+              📨 Waiting for {booking.invitedClientName || 'client'} to accept invite
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+                  const link = `${baseUrl}/booking/invite/${booking.inviteToken}`;
+                  navigator.clipboard.writeText(link);
+                  toast.success('Invite link copied!');
+                }}
+                className="h-8 text-[10px] flex-1"
+              >
+                <Link2 className="w-3 h-3 mr-1" />
+                Copy Link
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+                  const link = `${baseUrl}/booking/invite/${booking.inviteToken}`;
+                  const subject = encodeURIComponent('Your Nail Appointment Invite');
+                  const body = encodeURIComponent(`Hi ${booking.invitedClientName},\n\nHere's your appointment invite:\n${link}`);
+                  window.open(`mailto:${booking.invitedClientEmail}?subject=${subject}&body=${body}`);
+                }}
+                className="h-8 text-[10px] flex-1"
+              >
+                <Send className="w-3 h-3 mr-1" />
+                Email
+              </Button>
+            </div>
+          </div>
+          {booking.inviteExpiresAt && (
+            <p className="text-[9px] text-[#6B6B6B]">
+              Expires: {new Date(booking.inviteExpiresAt).toLocaleDateString()}
+            </p>
+          )}
+        </div>
       ) : (
         <div className="p-2.5 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
           <p className="text-xs sm:text-sm text-yellow-700 font-light leading-relaxed">
@@ -152,10 +228,16 @@ export default function TechBookingsPage() {
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2 font-serif font-light tracking-tight">
               <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" strokeWidth={1} />
-              <span className="truncate">{booking.client?.username}</span>
+              <span className="truncate">{booking.client?.username || booking.invitedClientName || 'Pending'}</span>
             </CardTitle>
-            <CardDescription className="text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-light">
+            <CardDescription className="text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase font-light flex items-center gap-2">
               {booking.service?.name}
+              {booking.isManualBooking && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#8B7355]/10 text-[#8B7355] rounded text-[8px]">
+                  <Send className="w-2.5 h-2.5" />
+                  Invite
+                </span>
+              )}
             </CardDescription>
           </div>
           <Badge 
@@ -283,6 +365,15 @@ export default function TechBookingsPage() {
                 Bookings
               </h1>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowManualBookingDialog(true)}
+              className="h-9 text-[11px] border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355] hover:text-white"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5" strokeWidth={2} />
+              Create Appointment
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -423,6 +514,16 @@ export default function TechBookingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manual Booking Dialog */}
+      <CreateManualBookingDialog
+        open={showManualBookingDialog}
+        onOpenChange={setShowManualBookingDialog}
+        services={services}
+        availability={availability}
+        timeOff={timeOff}
+        onSuccess={fetchBookings}
+      />
 
       <BottomNav onCenterAction={() => router.push('/capture')} centerActionLabel="Create" />
     </div>

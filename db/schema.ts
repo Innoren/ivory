@@ -142,6 +142,12 @@ export const bookings = pgTable('bookings', {
   guestEmail: varchar('guest_email', { length: 255 }),
   guestPhone: varchar('guest_phone', { length: 50 }),
   guestName: varchar('guest_name', { length: 255 }),
+  // Manual appointment invite fields
+  inviteToken: varchar('invite_token', { length: 100 }).unique(),
+  inviteExpiresAt: timestamp('invite_expires_at'),
+  invitedClientEmail: varchar('invited_client_email', { length: 255 }),
+  invitedClientName: varchar('invited_client_name', { length: 255 }),
+  isManualBooking: boolean('is_manual_booking').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
