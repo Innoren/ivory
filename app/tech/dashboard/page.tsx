@@ -507,8 +507,7 @@ export default function TechDashboardPage() {
                   {personalDesigns.map((design) => (
                     <Card 
                       key={design.id} 
-                      className="group overflow-hidden cursor-pointer border border-[#E8E8E8] hover:border-[#8B7355] hover:shadow-2xl hover:shadow-[#8B7355]/5 transition-all duration-700 bg-white rounded-none"
-                      onClick={() => router.push(`/shared/${design.id}`)}
+                      className="group overflow-hidden border border-[#E8E8E8] hover:border-[#8B7355] hover:shadow-2xl hover:shadow-[#8B7355]/5 transition-all duration-700 bg-white rounded-none"
                     >
                       <CardContent className="p-0">
                         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#F8F7F5] to-white">
@@ -519,8 +518,80 @@ export default function TechDashboardPage() {
                             className="object-cover group-hover:scale-110 transition-transform duration-1000"
                             unoptimized
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                          
+                          {/* Action Buttons Overlay */}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-4 sm:p-6">
+                            <div className="flex items-center justify-between gap-2">
+                              {/* Delete - Left */}
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  if (!confirm('Are you sure you want to delete this design?')) return
+                                  try {
+                                    const response = await fetch(`/api/looks/${design.id}`, {
+                                      method: 'DELETE',
+                                    })
+                                    if (response.ok) {
+                                      setPersonalDesigns(personalDesigns.filter(d => d.id !== design.id))
+                                    } else {
+                                      alert('Failed to delete design')
+                                    }
+                                  } catch (error) {
+                                    console.error('Error deleting design:', error)
+                                    alert('An error occurred')
+                                  }
+                                }}
+                                className="flex flex-col items-center gap-1 min-w-[60px] sm:min-w-[70px] active:scale-95 transition-transform touch-manipulation"
+                              >
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </div>
+                                <span className="text-[8px] sm:text-[9px] text-white font-light tracking-wider uppercase">Delete</span>
+                              </button>
+
+                              {/* Visualize - Center */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  localStorage.setItem('loadedDesignImage', design.imageUrl)
+                                  localStorage.setItem('autoShowConfirmDialog', 'true')
+                                  localStorage.setItem('loadedDesignMetadata', JSON.stringify({
+                                    source: 'ai-generated',
+                                    lookId: design.id,
+                                    title: design.title
+                                  }))
+                                  router.push('/capture')
+                                }}
+                                disabled={subscriptionTier === 'free' || subscriptionStatus !== 'active'}
+                                className="flex flex-col items-center gap-1 min-w-[80px] sm:min-w-[90px] active:scale-95 transition-transform touch-manipulation disabled:opacity-50"
+                              >
+                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#8B7355] flex items-center justify-center hover:bg-[#A0826D] transition-colors shadow-lg">
+                                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" strokeWidth={1.5} />
+                                </div>
+                                <span className="text-[8px] sm:text-[9px] text-white font-light tracking-wider uppercase">Visualize</span>
+                              </button>
+
+                              {/* Share - Right */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  router.push(`/share/${design.id}`)
+                                }}
+                                className="flex flex-col items-center gap-1 min-w-[60px] sm:min-w-[70px] active:scale-95 transition-transform touch-manipulation"
+                              >
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                  </svg>
+                                </div>
+                                <span className="text-[8px] sm:text-[9px] text-white font-light tracking-wider uppercase">Share</span>
+                              </button>
+                            </div>
+                          </div>
                         </div>
+                        
                         <div className="p-6 sm:p-7">
                           <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-3 truncate group-hover:text-[#8B7355] transition-colors duration-700 tracking-[-0.01em]">
                             {design.title}
