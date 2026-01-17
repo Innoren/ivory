@@ -182,12 +182,25 @@ export default function TechBookingsPage() {
           </p>
         </>
       ) : booking.isManualBooking && booking.inviteToken ? (
-        <div className="space-y-2">
-          <div className="p-2.5 sm:p-3 bg-[#8B7355]/10 border border-[#8B7355]/20 rounded">
-            <p className="text-xs sm:text-sm text-[#8B7355] font-light leading-relaxed mb-2">
-              📨 Waiting for {booking.invitedClientName || 'client'} to accept invite
-            </p>
-            <div className="flex gap-2">
+        <div className="space-y-3 sm:space-y-3.5">
+          <div className="p-4 sm:p-5 bg-gradient-to-br from-[#8B7355]/10 via-[#8B7355]/5 to-transparent border-2 border-[#8B7355]/20 rounded-xl sm:rounded-2xl shadow-sm">
+            <div className="flex items-start gap-3 mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#8B7355]/15 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-[#8B7355]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] sm:text-[14px] text-[#8B7355] font-medium leading-relaxed mb-1 tracking-tight">
+                  Waiting for Response
+                </p>
+                <p className="text-[11px] sm:text-[12px] text-[#6B6B6B] font-light leading-relaxed">
+                  Invite sent to <span className="font-medium text-[#1A1A1A]">{booking.invitedClientName || 'client'}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
               <Button
                 variant="outline"
                 size="sm"
@@ -197,9 +210,11 @@ export default function TechBookingsPage() {
                   navigator.clipboard.writeText(link);
                   toast.success('Invite link copied!');
                 }}
-                className="h-8 text-[10px] flex-1"
+                className="h-10 sm:h-11 text-[12px] sm:text-[13px] flex-1 bg-white hover:bg-[#F8F7F5] border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-300 rounded-lg sm:rounded-xl font-medium active:scale-[0.98] touch-manipulation"
               >
-                <Link2 className="w-3 h-3 mr-1" />
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
                 Copy Link
               </Button>
               <Button
@@ -212,24 +227,42 @@ export default function TechBookingsPage() {
                   const body = encodeURIComponent(`Hi ${booking.invitedClientName},\n\nHere's your appointment invite:\n${link}`);
                   window.open(`mailto:${booking.invitedClientEmail}?subject=${subject}&body=${body}`);
                 }}
-                className="h-8 text-[10px] flex-1"
+                className="h-10 sm:h-11 text-[12px] sm:text-[13px] flex-1 bg-white hover:bg-[#F8F7F5] border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-300 rounded-lg sm:rounded-xl font-medium active:scale-[0.98] touch-manipulation"
               >
-                <Send className="w-3 h-3 mr-1" />
-                Email
+                <Send className="w-4 h-4 mr-2" strokeWidth={2} />
+                Send Email
               </Button>
             </div>
           </div>
+          
           {booking.inviteExpiresAt && (
-            <p className="text-[9px] text-[#6B6B6B]">
-              Expires: {new Date(booking.inviteExpiresAt).toLocaleDateString()}
-            </p>
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#F8F7F5] border border-[#E8E8E8] rounded-lg">
+              <svg className="w-3.5 h-3.5 text-[#8B7355] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-[10px] sm:text-[11px] text-[#6B6B6B] font-light">
+                Expires {new Date(booking.inviteExpiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            </div>
           )}
         </div>
       ) : (
-        <div className="p-2.5 sm:p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <p className="text-xs sm:text-sm text-yellow-700 font-light leading-relaxed">
-            ⏳ Waiting for client payment
-          </p>
+        <div className="p-4 sm:p-5 bg-gradient-to-br from-yellow-50 to-yellow-50/50 border-2 border-yellow-200/60 rounded-xl sm:rounded-2xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] sm:text-[14px] text-yellow-700 font-medium leading-relaxed tracking-tight">
+                Awaiting Payment
+              </p>
+              <p className="text-[11px] sm:text-[12px] text-yellow-600/80 font-light leading-relaxed mt-0.5">
+                Client needs to complete payment
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
