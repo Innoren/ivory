@@ -438,13 +438,13 @@ export default function BookAppointmentPage() {
         
         {/* Service Selection */}
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#E8E8E8]/50">
-          <div className="px-4 py-3 border-b border-[#E8E8E8]/50">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-[#8B7355] text-white text-[11px] font-medium flex items-center justify-center">1</div>
-              <span className="text-[13px] font-medium text-[#1A1A1A]">Select Service</span>
+          <div className="px-4 sm:px-5 py-4 border-b border-[#E8E8E8]/50 bg-gradient-to-r from-[#F8F7F5] to-white">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#8B7355] text-white text-[12px] sm:text-[13px] font-medium flex items-center justify-center shadow-sm">1</div>
+              <span className="text-[14px] sm:text-[15px] font-medium text-[#1A1A1A] tracking-tight">Select Service</span>
             </div>
           </div>
-          <div className="p-2">
+          <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
             {services.map((service) => (
               <button
                 key={service.id}
@@ -452,31 +452,37 @@ export default function BookAppointmentPage() {
                   triggerHaptic('light');
                   setSelectedService(service.id.toString());
                 }}
-                className={`w-full p-3 rounded-xl text-left transition-all duration-200 ${
+                className={`w-full p-4 sm:p-5 rounded-xl sm:rounded-2xl text-left transition-all duration-300 shadow-sm ${
                   selectedService === service.id.toString()
-                    ? 'bg-[#8B7355]/10 border-2 border-[#8B7355]'
-                    : 'hover:bg-[#F8F7F5] border-2 border-transparent'
+                    ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#8B7355]/5 border-2 border-[#8B7355] shadow-md scale-[1.02]'
+                    : 'bg-white hover:bg-[#F8F7F5] border-2 border-[#E8E8E8] hover:border-[#8B7355]/30 hover:shadow-md active:scale-[0.98]'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[14px] font-medium text-[#1A1A1A] mb-0.5">{service.name}</h3>
+                    <h3 className="text-[15px] sm:text-[16px] font-medium text-[#1A1A1A] mb-1.5 tracking-tight">{service.name}</h3>
                     {service.description && (
-                      <p className="text-[12px] text-[#6B6B6B] line-clamp-2">{service.description}</p>
+                      <p className="text-[12px] sm:text-[13px] text-[#6B6B6B] line-clamp-2 leading-relaxed font-light">{service.description}</p>
                     )}
+                    <div className="flex items-center gap-1.5 mt-2 text-[11px] sm:text-[12px] text-[#8B7355]">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={1.5} />
+                      <span className="font-medium">{service.duration} minutes</span>
+                    </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-[16px] font-semibold text-[#1A1A1A]">${service.price}</p>
-                    <div className="flex items-center gap-1 text-[11px] text-[#6B6B6B]">
-                      <Clock className="w-3 h-3" strokeWidth={2} />
-                      <span>{service.duration}min</span>
+                    <div className={`px-3 py-1.5 rounded-lg ${
+                      selectedService === service.id.toString()
+                        ? 'bg-[#8B7355] text-white'
+                        : 'bg-[#F8F7F5] text-[#1A1A1A]'
+                    }`}>
+                      <p className="text-[17px] sm:text-[18px] font-semibold">${service.price}</p>
                     </div>
                   </div>
                 </div>
                 {selectedService === service.id.toString() && (
-                  <div className="mt-2 flex items-center gap-1.5 text-[#8B7355]">
-                    <CheckCircle2 className="w-4 h-4" strokeWidth={2} />
-                    <span className="text-[11px] font-medium">Selected</span>
+                  <div className="mt-3 pt-3 border-t border-[#8B7355]/20 flex items-center gap-2 text-[#8B7355]">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
+                    <span className="text-[12px] sm:text-[13px] font-medium tracking-wide">Selected</span>
                   </div>
                 )}
               </button>

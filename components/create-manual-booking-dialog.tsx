@@ -272,12 +272,12 @@ export function CreateManualBookingDialog({
               <div className="space-y-2 sm:space-y-3">
                 <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Service</Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger className="h-10 sm:h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[13px] sm:text-[14px]">
+                  <SelectTrigger className="h-11 sm:h-12 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px] sm:text-[15px] rounded-xl shadow-sm hover:border-[#8B7355]/50 transition-colors">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#E8E8E8] max-h-[200px] sm:max-h-[300px]">
+                  <SelectContent className="bg-white border-[#E8E8E8] max-h-[280px] sm:max-h-[360px] rounded-xl shadow-lg">
                     {services.length === 0 ? (
-                      <div className="p-3 sm:p-4 text-center text-[12px] sm:text-[13px] text-[#6B6B6B]">
+                      <div className="p-4 sm:p-6 text-center text-[13px] sm:text-[14px] text-[#6B6B6B] font-light">
                         No services available. Please add services first.
                       </div>
                     ) : (
@@ -285,11 +285,22 @@ export function CreateManualBookingDialog({
                         <SelectItem 
                           key={service.id} 
                           value={service.id.toString()}
-                          className="text-[13px] sm:text-[14px] cursor-pointer py-2 sm:py-3"
+                          className="text-[14px] sm:text-[15px] cursor-pointer py-3 sm:py-4 px-3 sm:px-4 hover:bg-[#F8F7F5] focus:bg-[#8B7355]/10 transition-colors my-1 mx-1 rounded-lg"
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1 sm:gap-4">
-                            <span className="font-medium">{service.name}</span>
-                            <span className="text-[11px] sm:text-[12px] text-[#6B6B6B]">${service.price} • {service.duration}min</span>
+                          <div className="flex flex-col gap-1.5 w-full">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-medium text-[#1A1A1A] tracking-tight">{service.name}</span>
+                              <span className="text-[15px] sm:text-[16px] font-semibold text-[#8B7355]">${service.price}</span>
+                            </div>
+                            {service.description && (
+                              <p className="text-[11px] sm:text-[12px] text-[#6B6B6B] font-light line-clamp-1">{service.description}</p>
+                            )}
+                            <div className="flex items-center gap-1.5 text-[11px] sm:text-[12px] text-[#8B7355]">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="font-medium">{service.duration} minutes</span>
+                            </div>
                           </div>
                         </SelectItem>
                       ))
