@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { bookings, techProfiles, services, users, notifications, sessions } from '@/db/schema';
+import { bookings, notifications } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth';
 
 // GET - Get invite details (public, no auth required)
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
@@ -40,6 +40,18 @@ export async function GET(
     }
 
     // Return booking details (sanitized for public view)
+    const service = booking.service as { id: number; name: string; description: string | null; duration: number };
+    const techProfile = booking.techProfile as { 
+      id: number; 
+      businessName: string | null; 
+      location: string | null; 
+      rating: string | null; 
+      totalReviews: number | null;
+      userId: number;
+      portfolioImages?: { imageUrl: string }[];
+      user?: { username: string | null };
+    };
+    
     return NextResponse.json({
       booking: {
         id: booking.id,
@@ -54,19 +66,19 @@ export async function GET(
         invitedClientEmail: booking.invitedClientEmail,
         inviteExpiresAt: booking.inviteExpiresAt,
         service: {
-          id: booking.service.id,
-          name: booking.service.name,
-          description: booking.service.description,
-          duration: booking.service.duration,
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          duration: service.duration,
         },
         tech: {
-          id: booking.techProfile.id,
-          businessName: booking.techProfile.businessName,
-          location: booking.techProfile.location,
-          rating: booking.techProfile.rating,
-          totalReviews: booking.techProfile.totalReviews,
-          portfolioImage: booking.techProfile.portfolioImages?.[0]?.imageUrl,
-          username: booking.techProfile.user?.username,
+          id: techProfile.id,
+          businessName: techProfile.businessName,
+          location: techProfile.location,
+          rating: techProfile.rating,
+          totalReviews: techProfile.totalReviews,
+          portfolioImage: techProfile.portfolioImages?.[0]?.imageUrl,
+          username: techProfile.user?.username,
         },
       },
     });
@@ -146,12 +158,16 @@ export async function POST(
       .where(eq(bookings.id, booking.id))
       .returning();
 
+    // Type assertions for related data
+    const techProfile = booking.techProfile as { userId: number };
+    const service = booking.service as { name: string };
+
     // Create notification for tech
     await db.insert(notifications).values({
-      userId: booking.techProfile.userId,
+      userId: techProfile.userId,
       type: 'invite_accepted',
       title: 'Invite Accepted',
-      message: `${booking.invitedClientName} has accepted your appointment invite for ${booking.service.name}. Waiting for payment.`,
+      message: `${booking.invitedClientName} has accepted your appointment invite for ${service.name}. Waiting for payment.`,
       relatedId: booking.id,
     });
 

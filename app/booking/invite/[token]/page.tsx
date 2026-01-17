@@ -69,9 +69,9 @@ export default function BookingInvitePage() {
 
   const handleAcceptInvite = async () => {
     if (!currentUser) {
-      // Store invite token and redirect to auth
-      localStorage.setItem('pendingInvite', token);
-      router.push(`/auth?redirect=${encodeURIComponent(`/booking/invite/${token}`)}`);
+      // Store return URL for after auth (same pattern as other pages)
+      localStorage.setItem('returnUrl', `/booking/invite/${token}`);
+      router.push('/auth');
       return;
     }
 
