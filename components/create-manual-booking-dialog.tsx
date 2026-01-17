@@ -235,65 +235,73 @@ export function CreateManualBookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[#FAFAF8] border-[#E8E8E8]">
         {step === 'form' ? (
           <>
-            <DialogHeader>
-              <DialogTitle className="font-serif font-light text-xl">Create Manual Appointment</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="space-y-3 pb-2">
+              <DialogTitle className="font-serif font-light text-2xl text-[#1A1A1A] tracking-tight">
+                Create Appointment
+              </DialogTitle>
+              <DialogDescription className="text-[13px] text-[#6B6B6B] font-light leading-relaxed">
                 Create an appointment and send an invite link to your client. They'll pay when they accept.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-5 py-4">
+            <div className="space-y-6 py-4">
               {/* Client Info */}
               <div className="space-y-3">
-                <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Client Information</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Input
-                      placeholder="Client name"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      type="email"
-                      placeholder="Client email"
-                      value={clientEmail}
-                      onChange={(e) => setClientEmail(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
+                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Client Information</Label>
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Client name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
+                  />
+                  <Input
+                    type="email"
+                    placeholder="Client email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
+                  />
                 </div>
               </div>
 
               {/* Service Selection */}
-              <div className="space-y-2">
-                <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Service</Label>
+              <div className="space-y-3">
+                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Service</Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {services.map((service) => (
-                      <SelectItem key={service.id} value={service.id.toString()}>
-                        <div className="flex items-center justify-between w-full gap-4">
-                          <span>{service.name}</span>
-                          <span className="text-[#6B6B6B]">${service.price} • {service.duration}min</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="bg-white border-[#E8E8E8]">
+                    {services.length === 0 ? (
+                      <div className="p-4 text-center text-[13px] text-[#6B6B6B]">
+                        No services available. Please add services first.
+                      </div>
+                    ) : (
+                      services.map((service) => (
+                        <SelectItem 
+                          key={service.id} 
+                          value={service.id.toString()}
+                          className="text-[14px] cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between w-full gap-4">
+                            <span className="font-medium">{service.name}</span>
+                            <span className="text-[12px] text-[#6B6B6B]">${service.price} • {service.duration}min</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Date Selection */}
-              <div className="space-y-2">
-                <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Date</Label>
-                <div className="flex justify-center border border-[#E8E8E8] rounded-xl p-3">
+              <div className="space-y-3">
+                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Date</Label>
+                <div className="flex justify-center bg-white border border-[#E8E8E8] rounded-2xl p-4 shadow-sm">
                   <ElegantCalendar
                     selected={selectedDate}
                     onSelect={(date) => {
@@ -308,69 +316,77 @@ export function CreateManualBookingDialog({
 
               {/* Time Selection */}
               {selectedDate && (
-                <div className="space-y-2">
-                  <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Time</Label>
+                <div className="space-y-3">
+                  <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Time</Label>
                   {availableTimes.length === 0 ? (
-                    <p className="text-[13px] text-[#6B6B6B] text-center py-4">No available times on this date</p>
+                    <div className="bg-white border border-[#E8E8E8] rounded-2xl p-6 text-center">
+                      <p className="text-[13px] text-[#6B6B6B] font-light">No available times on this date</p>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
-                      {availableTimes.map((time) => (
-                        <button
-                          key={time}
-                          onClick={() => setSelectedTime(time)}
-                          className={cn(
-                            "py-2 px-2 text-[11px] rounded-lg transition-all",
-                            selectedTime === time
-                              ? "bg-[#8B7355] text-white"
-                              : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8]"
-                          )}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                    <div className="bg-white border border-[#E8E8E8] rounded-2xl p-3">
+                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                        {availableTimes.map((time) => (
+                          <button
+                            key={time}
+                            onClick={() => setSelectedTime(time)}
+                            className={cn(
+                              "py-2.5 px-2 text-[12px] rounded-xl transition-all duration-200 font-light",
+                              selectedTime === time
+                                ? "bg-[#8B7355] text-white shadow-md"
+                                : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8] hover:shadow-sm"
+                            )}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Notes */}
-              <div className="space-y-2">
-                <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Notes for client (optional)</Label>
+              <div className="space-y-3">
+                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Notes for client (optional)</Label>
                 <Textarea
                   placeholder="Any special instructions or notes..."
                   value={techNotes}
                   onChange={(e) => setTechNotes(e.target.value)}
-                  className="resize-none h-20"
+                  className="resize-none h-24 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
                 />
               </div>
 
               {/* Price Preview */}
               {selectedServiceData && (
-                <div className="bg-[#F8F7F5] rounded-xl p-3 space-y-2">
+                <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl p-4 space-y-2 border border-[#E8E8E8]">
                   <div className="flex justify-between text-[13px]">
-                    <span className="text-[#6B6B6B]">Service</span>
-                    <span className="text-[#1A1A1A]">${parseFloat(selectedServiceData.price).toFixed(2)}</span>
+                    <span className="text-[#6B6B6B] font-light">Service</span>
+                    <span className="text-[#1A1A1A] font-medium">${parseFloat(selectedServiceData.price).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[13px]">
-                    <span className="text-[#6B6B6B]">Convenience fee (15%)</span>
-                    <span className="text-[#1A1A1A]">${(parseFloat(selectedServiceData.price) * 0.15).toFixed(2)}</span>
+                    <span className="text-[#6B6B6B] font-light">Convenience fee (15%)</span>
+                    <span className="text-[#1A1A1A] font-medium">${(parseFloat(selectedServiceData.price) * 0.15).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-[14px] font-medium pt-2 border-t border-[#E8E8E8]">
-                    <span>Client pays</span>
-                    <span>${(parseFloat(selectedServiceData.price) * 1.15).toFixed(2)}</span>
+                  <div className="flex justify-between text-[15px] font-medium pt-2 border-t border-[#E8E8E8]/50">
+                    <span className="text-[#1A1A1A]">Client pays</span>
+                    <span className="text-[#8B7355]">${(parseFloat(selectedServiceData.price) * 1.15).toFixed(2)}</span>
                   </div>
                 </div>
               )}
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <DialogFooter className="gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="flex-1 h-11 border-[#E8E8E8] hover:bg-[#F8F7F5]"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={loading || !selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail}
-                className="bg-[#1A1A1A] hover:bg-[#8B7355] text-white"
+                className="flex-1 h-11 bg-[#1A1A1A] hover:bg-[#8B7355] text-white transition-colors duration-200"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create & Get Link'}
               </Button>
@@ -378,31 +394,33 @@ export function CreateManualBookingDialog({
           </>
         ) : (
           <>
-            <DialogHeader>
-              <DialogTitle className="font-serif font-light text-xl flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
+            <DialogHeader className="space-y-3">
+              <DialogTitle className="font-serif font-light text-2xl flex items-center gap-2 text-[#1A1A1A]">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Check className="w-5 h-5 text-green-600" />
+                </div>
                 Invite Created!
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-[13px] text-[#6B6B6B] font-light leading-relaxed">
                 Share this link with {clientName} so they can view and pay for their appointment.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               {/* Invite Link */}
-              <div className="space-y-2">
-                <Label className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Invite Link</Label>
+              <div className="space-y-3">
+                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Invite Link</Label>
                 <div className="flex gap-2">
                   <Input
                     value={inviteLink}
                     readOnly
-                    className="h-10 text-[13px] bg-[#F8F7F5]"
+                    className="h-11 text-[13px] bg-[#F8F7F5] border-[#E8E8E8] font-mono"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={copyLink}
-                    className="h-10 w-10 flex-shrink-0"
+                    className="h-11 w-11 flex-shrink-0 border-[#E8E8E8] hover:bg-[#F8F7F5]"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   </Button>
@@ -414,7 +432,7 @@ export function CreateManualBookingDialog({
                 <Button
                   variant="outline"
                   onClick={copyLink}
-                  className="h-12 flex items-center gap-2"
+                  className="h-12 flex items-center gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5]"
                 >
                   <Link2 className="w-4 h-4" />
                   Copy Link
@@ -422,7 +440,7 @@ export function CreateManualBookingDialog({
                 <Button
                   variant="outline"
                   onClick={sendEmail}
-                  className="h-12 flex items-center gap-2"
+                  className="h-12 flex items-center gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5]"
                 >
                   <Mail className="w-4 h-4" />
                   Email Client
@@ -430,33 +448,36 @@ export function CreateManualBookingDialog({
               </div>
 
               {/* Appointment Summary */}
-              <div className="bg-[#F8F7F5] rounded-xl p-4 space-y-3">
-                <p className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B]">Appointment Summary</p>
+              <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl p-4 space-y-3 border border-[#E8E8E8]">
+                <p className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Appointment Summary</p>
                 <div className="space-y-2 text-[13px]">
                   <div className="flex items-center gap-2">
-                    <span className="text-[#6B6B6B]">Client:</span>
+                    <span className="text-[#6B6B6B] font-light">Client:</span>
                     <span className="text-[#1A1A1A] font-medium">{clientName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-[#6B6B6B]" />
-                    <span className="text-[#1A1A1A]">
+                    <Calendar className="w-3.5 h-3.5 text-[#8B7355]" />
+                    <span className="text-[#1A1A1A] font-light">
                       {selectedDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-[#6B6B6B]" />
-                    <span className="text-[#1A1A1A]">{selectedTime}</span>
+                    <Clock className="w-3.5 h-3.5 text-[#8B7355]" />
+                    <span className="text-[#1A1A1A] font-light">{selectedTime}</span>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[11px] text-[#6B6B6B] text-center">
+              <p className="text-[11px] text-center text-[#6B6B6B] font-light leading-relaxed">
                 The invite expires in 7 days. You'll be notified when {clientName} accepts and pays.
               </p>
             </div>
 
-            <DialogFooter>
-              <Button onClick={() => onOpenChange(false)} className="w-full bg-[#1A1A1A] hover:bg-[#8B7355]">
+            <DialogFooter className="pt-2">
+              <Button 
+                onClick={() => onOpenChange(false)} 
+                className="w-full h-11 bg-[#1A1A1A] hover:bg-[#8B7355] transition-colors duration-200"
+              >
                 Done
               </Button>
             </DialogFooter>
