@@ -66,24 +66,38 @@ export default function TechBookingsPage() {
 
   const fetchTechData = async () => {
     try {
-      const userStr = localStorage.getItem('ivoryUser');
-      if (!userStr) return;
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
-      const user = JSON.parse(userStr);
-      
-      // Fetch tech profile with services
-      const techRes = await fetch(`/api/tech/${user.techProfileId || user.id}`);
-      if (techRes.ok) {
-        const data = await techRes.json();
-        setServices(data.tech?.services || []);
+      // Get current user's tech profile
+      const profileRes = await fetch('/api/tech/me', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
+      });
+
+      if (!profileRes.ok) {
+        console.error('Failed to fetch tech profile');
+        return;
       }
 
+      const profileData = await profileRes.json();
+      const techProfile = profileData.techProfile;
+
+      if (!techProfile) {
+        console.error('No tech profile found');
+        return;
+      }
+
+      // Set services from the profile
+      setServices(techProfile.services || []);
+      console.log('Services loaded:', techProfile.services?.length || 0, 'services');
+
       // Fetch availability
-      const availRes = await fetch(`/api/tech/availability?techProfileId=${user.techProfileId || user.id}`);
+      const availRes = await fetch(`/api/tech/availability?techProfileId=${techProfile.id}`);
       if (availRes.ok) {
-        const data = await availRes.json();
-        setAvailability(data.availability || []);
-        setTimeOff(data.timeOff || []);
+        const availData = await availRes.json();
+        setAvailability(availData.availability || []);
+        setTimeOff(availData.timeOff || []);
       }
     } catch (error) {
       console.error('Error fetching tech data:', error);

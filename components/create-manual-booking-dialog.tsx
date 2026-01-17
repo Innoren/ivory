@@ -235,49 +235,49 @@ export function CreateManualBookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[#FAFAF8] border-[#E8E8E8]">
+      <DialogContent className="sm:max-w-2xl w-[calc(100%-2rem)] max-h-[85vh] sm:max-h-[90vh] overflow-y-auto bg-[#FAFAF8] border-[#E8E8E8]">
         {step === 'form' ? (
           <>
-            <DialogHeader className="space-y-3 pb-2">
-              <DialogTitle className="font-serif font-light text-2xl text-[#1A1A1A] tracking-tight">
+            <DialogHeader className="space-y-2 sm:space-y-3 pb-2">
+              <DialogTitle className="font-serif font-light text-xl sm:text-2xl text-[#1A1A1A] tracking-tight">
                 Create Appointment
               </DialogTitle>
-              <DialogDescription className="text-[13px] text-[#6B6B6B] font-light leading-relaxed">
+              <DialogDescription className="text-[12px] sm:text-[13px] text-[#6B6B6B] font-light leading-relaxed">
                 Create an appointment and send an invite link to your client. They'll pay when they accept.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6 py-4">
+            <div className="space-y-5 sm:space-y-6 py-3 sm:py-4">
               {/* Client Info */}
-              <div className="space-y-3">
-                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Client Information</Label>
-                <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Client Information</Label>
+                <div className="space-y-2 sm:space-y-3">
                   <Input
                     placeholder="Client name"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
+                    className="h-10 sm:h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[13px] sm:text-[14px]"
                   />
                   <Input
                     type="email"
                     placeholder="Client email"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
+                    className="h-10 sm:h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[13px] sm:text-[14px]"
                   />
                 </div>
               </div>
 
               {/* Service Selection */}
-              <div className="space-y-3">
-                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Service</Label>
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Service</Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger className="h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]">
+                  <SelectTrigger className="h-10 sm:h-11 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[13px] sm:text-[14px]">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[#E8E8E8]">
+                  <SelectContent className="bg-white border-[#E8E8E8] max-h-[200px] sm:max-h-[300px]">
                     {services.length === 0 ? (
-                      <div className="p-4 text-center text-[13px] text-[#6B6B6B]">
+                      <div className="p-3 sm:p-4 text-center text-[12px] sm:text-[13px] text-[#6B6B6B]">
                         No services available. Please add services first.
                       </div>
                     ) : (
@@ -285,11 +285,11 @@ export function CreateManualBookingDialog({
                         <SelectItem 
                           key={service.id} 
                           value={service.id.toString()}
-                          className="text-[14px] cursor-pointer"
+                          className="text-[13px] sm:text-[14px] cursor-pointer py-2 sm:py-3"
                         >
-                          <div className="flex items-center justify-between w-full gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1 sm:gap-4">
                             <span className="font-medium">{service.name}</span>
-                            <span className="text-[12px] text-[#6B6B6B]">${service.price} • {service.duration}min</span>
+                            <span className="text-[11px] sm:text-[12px] text-[#6B6B6B]">${service.price} • {service.duration}min</span>
                           </div>
                         </SelectItem>
                       ))
@@ -299,9 +299,9 @@ export function CreateManualBookingDialog({
               </div>
 
               {/* Date Selection */}
-              <div className="space-y-3">
-                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Date</Label>
-                <div className="flex justify-center bg-white border border-[#E8E8E8] rounded-2xl p-4 shadow-sm">
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Date</Label>
+                <div className="flex justify-center bg-white border border-[#E8E8E8] rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-sm">
                   <ElegantCalendar
                     selected={selectedDate}
                     onSelect={(date) => {
@@ -309,31 +309,31 @@ export function CreateManualBookingDialog({
                       setSelectedTime('');
                     }}
                     disabled={(date) => !isDateAvailable(date)}
-                    className="border-0 shadow-none p-0"
+                    className="border-0 shadow-none p-0 text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               {/* Time Selection */}
               {selectedDate && (
-                <div className="space-y-3">
-                  <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Time</Label>
+                <div className="space-y-2 sm:space-y-3">
+                  <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Time</Label>
                   {availableTimes.length === 0 ? (
-                    <div className="bg-white border border-[#E8E8E8] rounded-2xl p-6 text-center">
-                      <p className="text-[13px] text-[#6B6B6B] font-light">No available times on this date</p>
+                    <div className="bg-white border border-[#E8E8E8] rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
+                      <p className="text-[12px] sm:text-[13px] text-[#6B6B6B] font-light">No available times on this date</p>
                     </div>
                   ) : (
-                    <div className="bg-white border border-[#E8E8E8] rounded-2xl p-3">
-                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                    <div className="bg-white border border-[#E8E8E8] rounded-xl sm:rounded-2xl p-2 sm:p-3">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-32 sm:max-h-40 overflow-y-auto">
                         {availableTimes.map((time) => (
                           <button
                             key={time}
                             onClick={() => setSelectedTime(time)}
                             className={cn(
-                              "py-2.5 px-2 text-[12px] rounded-xl transition-all duration-200 font-light",
+                              "py-2 sm:py-2.5 px-1.5 sm:px-2 text-[11px] sm:text-[12px] rounded-lg sm:rounded-xl transition-all duration-200 font-light",
                               selectedTime === time
                                 ? "bg-[#8B7355] text-white shadow-md"
-                                : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8] hover:shadow-sm"
+                                : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8] hover:shadow-sm active:scale-95"
                             )}
                           >
                             {time}
@@ -346,28 +346,28 @@ export function CreateManualBookingDialog({
               )}
 
               {/* Notes */}
-              <div className="space-y-3">
-                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Notes for client (optional)</Label>
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Notes for client (optional)</Label>
                 <Textarea
                   placeholder="Any special instructions or notes..."
                   value={techNotes}
                   onChange={(e) => setTechNotes(e.target.value)}
-                  className="resize-none h-24 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[14px]"
+                  className="resize-none h-20 sm:h-24 bg-white border-[#E8E8E8] focus:border-[#8B7355] text-[13px] sm:text-[14px]"
                 />
               </div>
 
               {/* Price Preview */}
               {selectedServiceData && (
-                <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl p-4 space-y-2 border border-[#E8E8E8]">
-                  <div className="flex justify-between text-[13px]">
+                <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2 border border-[#E8E8E8]">
+                  <div className="flex justify-between text-[12px] sm:text-[13px]">
                     <span className="text-[#6B6B6B] font-light">Service</span>
                     <span className="text-[#1A1A1A] font-medium">${parseFloat(selectedServiceData.price).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-[13px]">
+                  <div className="flex justify-between text-[12px] sm:text-[13px]">
                     <span className="text-[#6B6B6B] font-light">Convenience fee (15%)</span>
                     <span className="text-[#1A1A1A] font-medium">${(parseFloat(selectedServiceData.price) * 0.15).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-[15px] font-medium pt-2 border-t border-[#E8E8E8]/50">
+                  <div className="flex justify-between text-[14px] sm:text-[15px] font-medium pt-2 border-t border-[#E8E8E8]/50">
                     <span className="text-[#1A1A1A]">Client pays</span>
                     <span className="text-[#8B7355]">${(parseFloat(selectedServiceData.price) * 1.15).toFixed(2)}</span>
                   </div>
@@ -375,18 +375,18 @@ export function CreateManualBookingDialog({
               )}
             </div>
 
-            <DialogFooter className="gap-2 pt-2">
+            <DialogFooter className="gap-2 pt-2 flex-col sm:flex-row">
               <Button 
                 variant="outline" 
                 onClick={() => onOpenChange(false)}
-                className="flex-1 h-11 border-[#E8E8E8] hover:bg-[#F8F7F5]"
+                className="w-full sm:flex-1 h-10 sm:h-11 border-[#E8E8E8] hover:bg-[#F8F7F5] text-[13px] sm:text-[14px]"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={loading || !selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail}
-                className="flex-1 h-11 bg-[#1A1A1A] hover:bg-[#8B7355] text-white transition-colors duration-200"
+                className="w-full sm:flex-1 h-10 sm:h-11 bg-[#1A1A1A] hover:bg-[#8B7355] text-white transition-colors duration-200 text-[13px] sm:text-[14px]"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create & Get Link'}
               </Button>
@@ -394,81 +394,81 @@ export function CreateManualBookingDialog({
           </>
         ) : (
           <>
-            <DialogHeader className="space-y-3">
-              <DialogTitle className="font-serif font-light text-2xl flex items-center gap-2 text-[#1A1A1A]">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-600" />
+            <DialogHeader className="space-y-2 sm:space-y-3">
+              <DialogTitle className="font-serif font-light text-xl sm:text-2xl flex items-center gap-2 text-[#1A1A1A]">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
                 Invite Created!
               </DialogTitle>
-              <DialogDescription className="text-[13px] text-[#6B6B6B] font-light leading-relaxed">
+              <DialogDescription className="text-[12px] sm:text-[13px] text-[#6B6B6B] font-light leading-relaxed">
                 Share this link with {clientName} so they can view and pay for their appointment.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4">
+            <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
               {/* Invite Link */}
-              <div className="space-y-3">
-                <Label className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Invite Link</Label>
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Invite Link</Label>
                 <div className="flex gap-2">
                   <Input
                     value={inviteLink}
                     readOnly
-                    className="h-11 text-[13px] bg-[#F8F7F5] border-[#E8E8E8] font-mono"
+                    className="h-10 sm:h-11 text-[11px] sm:text-[13px] bg-[#F8F7F5] border-[#E8E8E8] font-mono"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={copyLink}
-                    className="h-11 w-11 flex-shrink-0 border-[#E8E8E8] hover:bg-[#F8F7F5]"
+                    className="h-10 w-10 sm:h-11 sm:w-11 flex-shrink-0 border-[#E8E8E8] hover:bg-[#F8F7F5]"
                   >
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                   </Button>
                 </div>
               </div>
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <Button
                   variant="outline"
                   onClick={copyLink}
-                  className="h-12 flex items-center gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5]"
+                  className="h-10 sm:h-12 flex items-center gap-1.5 sm:gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5] text-[12px] sm:text-[13px]"
                 >
-                  <Link2 className="w-4 h-4" />
+                  <Link2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Copy Link
                 </Button>
                 <Button
                   variant="outline"
                   onClick={sendEmail}
-                  className="h-12 flex items-center gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5]"
+                  className="h-10 sm:h-12 flex items-center gap-1.5 sm:gap-2 border-[#E8E8E8] hover:bg-[#F8F7F5] text-[12px] sm:text-[13px]"
                 >
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Email Client
                 </Button>
               </div>
 
               {/* Appointment Summary */}
-              <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl p-4 space-y-3 border border-[#E8E8E8]">
-                <p className="text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Appointment Summary</p>
-                <div className="space-y-2 text-[13px]">
+              <div className="bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2 sm:space-y-3 border border-[#E8E8E8]">
+                <p className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-[#8B7355] font-medium">Appointment Summary</p>
+                <div className="space-y-1.5 sm:space-y-2 text-[12px] sm:text-[13px]">
                   <div className="flex items-center gap-2">
                     <span className="text-[#6B6B6B] font-light">Client:</span>
-                    <span className="text-[#1A1A1A] font-medium">{clientName}</span>
+                    <span className="text-[#1A1A1A] font-medium truncate">{clientName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-[#8B7355]" />
+                    <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8B7355] flex-shrink-0" />
                     <span className="text-[#1A1A1A] font-light">
                       {selectedDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-[#8B7355]" />
+                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8B7355] flex-shrink-0" />
                     <span className="text-[#1A1A1A] font-light">{selectedTime}</span>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[11px] text-center text-[#6B6B6B] font-light leading-relaxed">
+              <p className="text-[10px] sm:text-[11px] text-center text-[#6B6B6B] font-light leading-relaxed px-2">
                 The invite expires in 7 days. You'll be notified when {clientName} accepts and pays.
               </p>
             </div>
@@ -476,7 +476,7 @@ export function CreateManualBookingDialog({
             <DialogFooter className="pt-2">
               <Button 
                 onClick={() => onOpenChange(false)} 
-                className="w-full h-11 bg-[#1A1A1A] hover:bg-[#8B7355] transition-colors duration-200"
+                className="w-full h-10 sm:h-11 bg-[#1A1A1A] hover:bg-[#8B7355] transition-colors duration-200 text-[13px] sm:text-[14px]"
               >
                 Done
               </Button>
