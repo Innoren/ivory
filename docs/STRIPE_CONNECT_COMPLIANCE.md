@@ -122,9 +122,9 @@ Stripe automatically handles:
 ### When Client Books Appointment
 
 ```
-1. Client pays $112.50 total
+1. Client pays $115.00 total
    - Service: $100.00
-   - Platform fee: $12.50 (12.5%)
+   - Platform fee: $15.00 (15%)
 
 2. Stripe processes payment
    - Charges client's card
@@ -136,7 +136,7 @@ Stripe automatically handles:
 
 4. Tech receives payout
    - $100.00 transferred to tech's Stripe account
-   - Platform retains $12.50 fee
+   - Platform retains $15.00 fee (portion may be shared as a referral reward)
    - Tech's bank receives funds (2-7 days)
 ```
 

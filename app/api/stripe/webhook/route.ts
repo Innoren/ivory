@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/db';
-import { users, creditTransactions, bookings, notifications } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, creditTransactions, bookings, notifications, techProfiles, techReferralEarnings } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 
 // Disable body parsing for webhook
@@ -117,6 +117,73 @@ export async function POST(request: NextRequest) {
                 message: `Payment received for ${(booking.service as any).name}. You can now confirm the appointment.`,
                 relatedId: bookingId,
               });
+
+              // Process referral payment if applicable
+              const referrerTechId = session.metadata?.referrerTechId;
+              const referralFee = parseFloat(session.metadata?.referralFee || '0');
+              
+              if (referrerTechId && referralFee > 0) {
+                try {
+                  // Get referrer tech profile
+                  const referrerTech = await db.query.techProfiles.findFirst({
+                    where: eq(techProfiles.id, parseInt(referrerTechId)),
+                  });
+
+                  if (referrerTech && referrerTech.stripeConnectAccountId) {
+                    // Create transfer to referrer's Stripe Connect account
+                    const transfer = await stripe.transfers.create({
+                      amount: Math.round(referralFee * 100), // Convert to cents
+                      currency: 'usd',
+                      destination: referrerTech.stripeConnectAccountId,
+                      metadata: {
+                        type: 'tech_referral',
+                        bookingId: bookingId.toString(),
+                        referredTechId: (booking.techProfile as any).id.toString(),
+                      },
+                    });
+
+                    // Record the referral earning
+                    await db.insert(techReferralEarnings).values({
+                      referrerTechId: parseInt(referrerTechId),
+                      referredTechId: (booking.techProfile as any).id,
+                      bookingId: bookingId,
+                      bookingTotal: (booking as any).totalPrice || '0',
+                      referralAmount: referralFee.toFixed(2),
+                      status: 'paid',
+                      paidAt: new Date(),
+                    });
+
+                    // Update referrer's total earnings
+                    await db.update(techProfiles)
+                      .set({
+                        totalReferralEarnings: sql`COALESCE(${techProfiles.totalReferralEarnings}, 0) + ${referralFee}`,
+                      })
+                      .where(eq(techProfiles.id, parseInt(referrerTechId)));
+
+                    // Notify referrer about the earning
+                    await db.insert(notifications).values({
+                      userId: referrerTech.userId,
+                      type: 'referral_earning',
+                      title: 'Referral Earning',
+                      message: `You earned $${referralFee.toFixed(2)} from a booking by your referred tech!`,
+                      relatedId: bookingId,
+                    });
+
+                    console.log(`Referral payment of $${referralFee} sent to tech ${referrerTechId}`);
+                  }
+                } catch (referralError) {
+                  console.error('Failed to process referral payment:', referralError);
+                  // Don't fail the webhook - record as pending for manual processing
+                  await db.insert(techReferralEarnings).values({
+                    referrerTechId: parseInt(referrerTechId),
+                    referredTechId: (booking.techProfile as any).id,
+                    bookingId: bookingId,
+                    bookingTotal: (booking as any).totalPrice || '0',
+                    referralAmount: referralFee.toFixed(2),
+                    status: 'pending',
+                  });
+                }
+              }
 
               // Auto-generate design breakdown if design is attached
               if (booking.lookId) {

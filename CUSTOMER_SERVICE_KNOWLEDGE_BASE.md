@@ -729,10 +729,10 @@ The AI uses nail tech language you understand:
 
 **Platform Fee:**
 
-- Platform charges **12.5% service fee**
-- Fee deducted from booking total
-- You receive 87.5% of booking price
-- Example: $80 service → You receive $70, platform keeps $10
+- Platform charges **15% service fee** (paid by the client)
+- Fee added on top of the service price at checkout
+- You receive 100% of your service price
+- Example: $80 service → Client pays $92, you receive $80, platform keeps $12
 
 ### Business Subscription Requirement
 

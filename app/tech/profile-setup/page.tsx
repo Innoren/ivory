@@ -41,6 +41,18 @@ export default function TechProfileSetupPage() {
   const [noShowFeeEnabled, setNoShowFeeEnabled] = useState(false)
   const [noShowFeePercent, setNoShowFeePercent] = useState("50")
   const [cancellationWindowHours, setCancellationWindowHours] = useState("24")
+  const [pendingTechReferralCode, setPendingTechReferralCode] = useState<string | null>(null)
+
+  // Check for pending tech referral code on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("ivoryUser")
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      if (user.pendingTechReferralCode) {
+        setPendingTechReferralCode(user.pendingTechReferralCode)
+      }
+    }
+  }, [])
 
   // Auto-save functionality
   const saveProfile = useCallback(async () => {
@@ -64,6 +76,7 @@ export default function TechProfileSetupPage() {
           noShowFeeEnabled,
           noShowFeePercent: parseInt(noShowFeePercent) || 50,
           cancellationWindowHours: parseInt(cancellationWindowHours) || 24,
+          techReferralCode: pendingTechReferralCode, // Pass referral code for new profiles
         }),
       })
 
@@ -132,7 +145,7 @@ export default function TechProfileSetupPage() {
   }, [
     userId, businessName, phoneNumber, instagramHandle,
     tiktokHandle, facebookHandle, otherSocialLinks, bio, location, noShowFeeEnabled,
-    noShowFeePercent, cancellationWindowHours, services
+    noShowFeePercent, cancellationWindowHours, services, pendingTechReferralCode
   ])
 
   const { isSaving: autoSaving, lastSaved, hasUnsavedChanges, debouncedSave } = useAutoSave({

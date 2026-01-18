@@ -1,12 +1,35 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Paintbrush } from "lucide-react"
 import Image from "next/image"
 
 export default function UserTypePage() {
   const router = useRouter()
+  const [pendingTechReferralCode, setPendingTechReferralCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Check for pending tech referral code from signup or cookie
+    const userStr = localStorage.getItem("ivoryUser")
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      if (user.pendingTechReferralCode) {
+        setPendingTechReferralCode(user.pendingTechReferralCode)
+      }
+    }
+    
+    // Also check cookie
+    const cookies = document.cookie.split(';')
+    const techRefCookie = cookies.find(c => c.trim().startsWith('pendingTechReferralCode='))
+    if (techRefCookie) {
+      const code = techRefCookie.split('=')[1]
+      if (code) {
+        setPendingTechReferralCode(code)
+      }
+    }
+  }, [])
 
   const selectUserType = async (type: "client" | "tech") => {
     try {
@@ -27,7 +50,16 @@ export default function UserTypePage() {
 
       if (response.ok) {
         const updatedUser = await response.json()
+        
+        // If becoming a tech and there's a pending referral code, store it for profile setup
+        if (type === 'tech' && pendingTechReferralCode) {
+          updatedUser.pendingTechReferralCode = pendingTechReferralCode
+        }
+        
         localStorage.setItem("ivoryUser", JSON.stringify(updatedUser))
+        
+        // Clear the cookie
+        document.cookie = 'pendingTechReferralCode=; path=/; max-age=0'
         
         if (type === 'tech') {
           router.push("/tech/profile-setup")

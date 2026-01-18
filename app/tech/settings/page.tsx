@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield, Bell, Lock, Trash2, HelpCircle, UserX, CreditCard, ChevronRight, Coins, Wallet, LogOut } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, Lock, Trash2, HelpCircle, UserX, CreditCard, ChevronRight, Coins, Wallet, LogOut, Users } from 'lucide-react';
 import { BottomNav } from '@/components/bottom-nav';
 import { StripeConnectWallet } from '@/components/stripe-connect-wallet';
+import { TechReferralCard } from '@/components/tech-referral-card';
 
 export default function TechSettingsPage() {
   const router = useRouter();
@@ -173,6 +174,14 @@ export default function TechSettingsPage() {
           <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Payouts</p>
           <div className="bg-white p-4 border-b border-[#E8E8E8]">
             <StripeConnectWallet />
+          </div>
+        </div>
+
+        {/* Tech Referral Program */}
+        <div className="mt-6">
+          <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Referral Program</p>
+          <div className="bg-white p-4 border-b border-[#E8E8E8]">
+            <TechReferralCard />
           </div>
         </div>
 

@@ -62,9 +62,9 @@ Stripe Connect allows your platform to:
 
 ## Platform Fee Structure
 
-- **Service Fee**: 12.5% of each booking
-- **Tech Receives**: 87.5% of service price
-- **Example**: $80 service → $10 platform fee, $70 to tech
+- **Service Fee**: 15% of each booking (paid by the client)
+- **Tech Receives**: 100% of the service price
+- **Example**: $80 service → Client pays $92 total ($80 + $12 fee), tech receives $80, platform keeps $12
 
 ## Important Notes
 

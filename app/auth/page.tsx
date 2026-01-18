@@ -90,6 +90,7 @@ function AuthPageContent() {
   const [isChecking, setIsChecking] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [techReferralCode, setTechReferralCode] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   // Check for existing session and referral code on mount
@@ -110,6 +111,15 @@ function AuthPageContent() {
       setIsSignUp(true) // Auto-switch to signup mode if there's a referral code
       // Store referral code in cookie for OAuth flow (expires in 10 minutes)
       document.cookie = `pendingReferralCode=${refCode}; path=/; max-age=600; SameSite=Lax`
+    }
+    
+    // Get tech referral code from URL (for tech-to-tech referrals)
+    const techRefCode = urlParams.get('techRef')
+    if (techRefCode) {
+      setTechReferralCode(techRefCode)
+      setIsSignUp(true) // Auto-switch to signup mode
+      // Store tech referral code in cookie for OAuth flow (expires in 10 minutes)
+      document.cookie = `pendingTechReferralCode=${techRefCode}; path=/; max-age=600; SameSite=Lax`
     }
 
     const checkSession = async () => {
@@ -313,6 +323,7 @@ function AuthPageContent() {
             password, 
             authProvider: 'email',
             referralCode: referralCode || undefined,
+            techReferralCode: techReferralCode || undefined,
             dateOfBirth: dateOfBirth || undefined,
             phoneNumber: phoneNumber ? toE164(phoneNumber, phoneCountryCode) : undefined,
             phoneVerified: phoneVerified

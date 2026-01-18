@@ -13,6 +13,7 @@ import { CreditsDisplay } from "@/components/credits-display"
 import { BuyCreditsDialog } from "@/components/buy-credits-dialog"
 import { AnimatedTabs } from "@/components/animated-tabs"
 import CustomerServiceChatbot from "@/components/customer-service-chatbot"
+import { TechReferralCard } from "@/components/tech-referral-card"
 
 type ClientRequest = {
   id: string
@@ -165,6 +166,11 @@ export default function TechDashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 py-5 sm:py-8 lg:py-10 pb-safe">
+
+        {/* Tech Referral Program Card - Prominent placement */}
+        <div className="mb-6 sm:mb-8">
+          <TechReferralCard />
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full mb-5 sm:mb-8 grid grid-cols-4 h-auto bg-white border border-[#E8E8E8] p-0 rounded-none shadow-sm">

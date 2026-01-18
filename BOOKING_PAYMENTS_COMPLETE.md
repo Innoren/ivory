@@ -48,8 +48,8 @@ Successfully integrated Stripe payments into the booking system with a 12.5% ser
 **Booking Flow (`/book/[techId]`)**
 - Shows price breakdown:
   - Service Price: $50.00
-  - Service Fee (12.5%): $6.25
-  - Total: $56.25
+  - Service Fee (15%): $7.50
+  - Total: $57.50
 - "Continue to Payment" button
 - Redirects to Stripe Checkout
 - Handles success/cancel redirects
@@ -70,7 +70,7 @@ Successfully integrated Stripe payments into the booking system with a 12.5% ser
 
 **Client Flow:**
 1. Select service, design, date/time
-2. See price breakdown with 12.5% fee
+2. See price breakdown with 15% fee
 3. Click "Continue to Payment"
 4. Complete payment on Stripe
 5. Redirected back with success message
@@ -86,13 +86,13 @@ Successfully integrated Stripe payments into the booking system with a 12.5% ser
 
 ```
 Service Price:    $50.00  (goes to nail tech)
-Service Fee:      $ 6.25  (12.5% platform fee)
+Service Fee:      $ 7.50  (15% platform fee)
 ─────────────────────────
-Total Client Pays: $56.25
+Total Client Pays: $57.50
 ```
 
 **Key Points:**
-- Fee is 12.5% of service price
+- Fee is 15% of service price
 - Client pays the fee (not deducted from tech)
 - Tech receives full service price
 - Transparent breakdown shown to both parties

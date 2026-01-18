@@ -42,11 +42,11 @@
 ### Example Booking
 
 **Service Price:** $80
-**Platform Fee (12.5%):** $10
-**Total You Pay:** $90
+**Platform Fee (15%):** $12
+**Total You Pay:** $92
 
 **Tech Receives:** $80 (directly to their bank)
-**Platform Keeps:** $10
+**Platform Keeps:** $12
 
 ## FAQs
 
@@ -62,7 +62,7 @@ A: Yes! Access your payout dashboard from the wallet section in settings.
 A: You won't be able to receive payments from bookings. Clients can still book, but payment will be held until you setup your wallet.
 
 **Q: Are there any fees?**
-A: The platform takes a 12.5% service fee from each booking.
+A: The platform takes a 15% service fee from each booking.
 
 **Q: Can I change my bank account?**
 A: Yes, access your payout dashboard to update banking information.
@@ -144,11 +144,11 @@ A: Go to iOS Settings → [Your Name] → Subscriptions to manage your app subsc
 ### Example Booking
 
 **Service Price:** $80
-**Platform Fee (12.5%):** $10
-**Total You Pay:** $90
+**Platform Fee (15%):** $12
+**Total You Pay:** $92
 
 **Tech Receives:** $80 (directly to their bank)
-**Platform Keeps:** $10
+**Platform Keeps:** $12
 
 ## FAQs
 

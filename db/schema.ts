@@ -72,6 +72,11 @@ export const techProfiles = pgTable('tech_profiles', {
   stripeAccountStatus: varchar('stripe_account_status', { length: 50 }).default('not_setup'), // not_setup, pending, active, restricted
   payoutsEnabled: boolean('payouts_enabled').default(false),
   chargesEnabled: boolean('charges_enabled').default(false),
+  // Tech Referral Program - earn 5% of referred tech's bookings
+  techReferralCode: varchar('tech_referral_code', { length: 50 }).unique(),
+  referredByTechId: integer('referred_by_tech_id').references((): any => techProfiles.id),
+  totalReferralEarnings: decimal('total_referral_earnings', { precision: 10, scale: 2 }).default('0'),
+  pendingReferralEarnings: decimal('pending_referral_earnings', { precision: 10, scale: 2 }).default('0'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -138,6 +143,9 @@ export const bookings = pgTable('bookings', {
   // No-show fee tracking
   noShowFeeCharged: boolean('no_show_fee_charged').default(false),
   noShowFeeAmount: decimal('no_show_fee_amount', { precision: 10, scale: 2 }),
+  // Tech referral tracking - 5% of service price goes to referrer
+  referrerTechId: integer('referrer_tech_id').references(() => techProfiles.id),
+  referralFee: decimal('referral_fee', { precision: 10, scale: 2 }).default('0'),
   // Guest booking fields for V0 website bookings
   guestEmail: varchar('guest_email', { length: 255 }),
   guestPhone: varchar('guest_phone', { length: 50 }),
@@ -663,3 +671,34 @@ export const bookingMessagesRelations = relations(bookingMessages, ({ one }) => 
     references: [users.id],
   }),
 }));
+
+// Tech Referral Earnings - tracks 5% commission from referred tech bookings
+export const techReferralEarnings = pgTable('tech_referral_earnings', {
+  id: serial('id').primaryKey(),
+  referrerTechId: integer('referrer_tech_id').references(() => techProfiles.id).notNull(),
+  referredTechId: integer('referred_tech_id').references(() => techProfiles.id).notNull(),
+  bookingId: integer('booking_id').references(() => bookings.id).notNull(),
+  bookingTotal: decimal('booking_total', { precision: 10, scale: 2 }).notNull(),
+  referralAmount: decimal('referral_amount', { precision: 10, scale: 2 }).notNull(), // 5% of service price
+  status: varchar('status', { length: 50 }).default('pending').notNull(), // pending, paid, cancelled
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const techReferralEarningsRelations = relations(techReferralEarnings, ({ one }) => ({
+  referrerTech: one(techProfiles, {
+    fields: [techReferralEarnings.referrerTechId],
+    references: [techProfiles.id],
+    relationName: 'referrerEarnings',
+  }),
+  referredTech: one(techProfiles, {
+    fields: [techReferralEarnings.referredTechId],
+    references: [techProfiles.id],
+    relationName: 'referredEarnings',
+  }),
+  booking: one(bookings, {
+    fields: [techReferralEarnings.bookingId],
+    references: [bookings.id],
+  }),
+}));
+

@@ -68,15 +68,15 @@ Complete Stripe payment integration for nail tech bookings with a 12.5% service 
 ## Service Fee Structure
 
 ### Fee Breakdown
-- **Service Fee**: 12.5% of service price
+- **Service Fee**: 15% of service price
 - **Paid By**: Client (not deducted from nail tech)
 - **Example**:
   - Service Price: $50.00
-  - Service Fee: $6.25 (12.5%)
-  - Client Pays: $56.25
+  - Service Fee: $7.50 (15%)
+  - Client Pays: $57.50
   - Tech Receives: $50.00
 
-### Why 12.5%?
+### Why 15%?
 - Covers platform costs (hosting, payment processing, AI features)
 - Competitive with other booking platforms
 - Transparent to both clients and techs
@@ -89,7 +89,7 @@ Complete Stripe payment integration for nail tech bookings with a 12.5% service 
 ```typescript
 {
   servicePrice: decimal,           // Original service price (tech's rate)
-  serviceFee: decimal,             // 12.5% platform fee
+  serviceFee: decimal,             // 15% client-facing service fee
   totalPrice: decimal,             // servicePrice + serviceFee
   paymentStatus: string,           // 'pending' | 'paid' | 'refunded'
   stripePaymentIntentId: string,   // Stripe payment ID
@@ -150,12 +150,12 @@ Complete Stripe payment integration for nail tech bookings with a 12.5% service 
     <span>$50.00</span>
   </div>
   <div className="flex justify-between text-sm">
-    <span>Service Fee (12.5%):</span>
-    <span>$6.25</span>
+    <span>Service Fee (15%):</span>
+    <span>$7.50</span>
   </div>
   <div className="flex justify-between text-lg font-bold border-t pt-2">
     <span>Total:</span>
-    <span>$56.25</span>
+    <span>$57.50</span>
   </div>
 </div>
 ```

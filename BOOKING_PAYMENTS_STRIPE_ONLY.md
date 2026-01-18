@@ -77,12 +77,12 @@ Your app now uses IAP **only** for digital content:
 ### Client Books Appointment
 
 1. **Client selects service** → Tech's custom price (e.g., $85)
-2. **Platform fee added** → 12.5% = $10.63
-3. **Total calculated** → $95.63
+2. **Platform fee added** → 15% = $12.75
+3. **Total calculated** → $97.75
 4. **Stripe Checkout** → Opens for payment (iOS + Web)
 5. **Payment processed** → Stripe handles transaction
 6. **Tech receives payout** → Via Stripe Connect ($85)
-7. **Platform keeps fee** → $10.63
+7. **Platform keeps fee** → $12.75
 
 ### On iOS Native App
 
@@ -102,7 +102,7 @@ Your app now uses IAP **only** for digital content:
 - "Book appointments with nail techs"
 - "Pay for services"
 - "Secure payment processing"
-- "Service fee: 12.5%"
+- "Service fee: 15%"
 
 ### ❌ What to Avoid
 - Don't say "Buy bookings" (sounds like digital content)

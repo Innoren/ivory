@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/db';
-import { bookings, services, techProfiles, sessions } from '@/db/schema';
+import { bookings, services, techProfiles, sessions, techReferralEarnings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth';
 
@@ -9,7 +9,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-11-17.clover',
 });
 
-const SERVICE_FEE_PERCENTAGE = 0.125; // 12.5%
+const SERVICE_FEE_PERCENTAGE = 0.15; // 15% total service fee
+const REFERRAL_FEE_PERCENTAGE = 0.05; // 5% goes to referrer (from the 15%)
 
 export async function POST(request: NextRequest) {
   try {
@@ -92,10 +93,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Booking already paid' }, { status: 400 });
     }
 
-    // Calculate prices
+    // Calculate prices - 15% service fee (client sees this)
     const servicePrice = parseFloat((booking.service as any).price || '0');
     const serviceFee = servicePrice * SERVICE_FEE_PERCENTAGE;
     const totalPrice = servicePrice + serviceFee;
+
+    // Check if tech was referred - referrer gets 5% of service price
+    const techProfile = booking.techProfile as any;
+    let referralFee = 0;
+    let referrerTechId = null;
+    
+    if (techProfile.referredByTechId) {
+      // Get referrer tech profile to check if they have Stripe Connect
+      const referrerTech = await db.query.techProfiles.findFirst({
+        where: eq(techProfiles.id, techProfile.referredByTechId),
+      });
+      
+      if (referrerTech && referrerTech.payoutsEnabled && referrerTech.stripeConnectAccountId) {
+        referralFee = servicePrice * REFERRAL_FEE_PERCENTAGE;
+        referrerTechId = referrerTech.id;
+      }
+    }
+
+    // Platform fee = 15% total - 5% referral (if applicable) = 10% or 15%
+    const platformFee = serviceFee - referralFee;
 
     // Update booking with price breakdown
     await db
@@ -104,11 +125,12 @@ export async function POST(request: NextRequest) {
         servicePrice: servicePrice.toFixed(2),
         serviceFee: serviceFee.toFixed(2),
         totalPrice: totalPrice.toFixed(2),
+        referrerTechId: referrerTechId,
+        referralFee: referralFee.toFixed(2),
       })
       .where(eq(bookings.id, bookingId));
 
     // Check if tech has Stripe Connect account
-    const techProfile = booking.techProfile as any;
     const hasStripeConnect = techProfile.stripeConnectAccountId && techProfile.payoutsEnabled;
 
     // Create payment intent data with transfer if tech has Connect account
@@ -118,12 +140,17 @@ export async function POST(request: NextRequest) {
         userId: userId.toString(),
         techProfileId: techProfile.id.toString(),
         type: 'booking_payment',
+        referrerTechId: referrerTechId?.toString() || '',
+        referralFee: referralFee.toFixed(2),
       },
     };
 
     // If tech has Stripe Connect, use destination charges to split payment
+    // Platform keeps: platformFee (10% if referral, 15% if no referral)
+    // Tech receives: servicePrice
+    // Referrer receives: referralFee (handled separately via transfer after payment)
     if (hasStripeConnect) {
-      paymentIntentData.application_fee_amount = Math.round(serviceFee * 100); // Platform fee in cents
+      paymentIntentData.application_fee_amount = Math.round(platformFee * 100); // Platform fee in cents (10% or 15%)
       paymentIntentData.transfer_data = {
         destination: techProfile.stripeConnectAccountId, // Tech receives service price
       };

@@ -1,7 +1,7 @@
 # Wallet & Payout System
 
 ## Overview
-Nail techs can now set up a Stripe Connect wallet to receive payments directly from client bookings. The platform automatically splits payments: techs receive the service price, and the platform receives a 12.5% service fee.
+Nail techs can now set up a Stripe Connect wallet to receive payments directly from client bookings. The platform automatically splits payments: techs receive the full service price, and the platform receives a 15% service fee paid by the client.
 
 ## Features
 
@@ -12,10 +12,10 @@ Nail techs can now set up a Stripe Connect wallet to receive payments directly f
 - **Status Tracking**: Real-time wallet status (Not Setup, Pending, Active)
 
 ### Payment Flow
-1. Client books appointment and pays total amount (service price + 12.5% fee)
+1. Client books appointment and pays total amount (service price + 15% fee)
 2. Payment is processed through Stripe
 3. Service price is transferred to tech's Stripe Connect account
-4. Platform fee (12.5%) is retained by the platform
+4. Platform fee (15%) is retained by the platform (which may include referral rewards)
 5. Tech receives automatic payouts to their bank account
 
 ## Database Changes

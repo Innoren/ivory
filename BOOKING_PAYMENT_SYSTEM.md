@@ -68,22 +68,22 @@ Techs setup their wallet through the app, but the actual Stripe Connect integrat
 
 ## Revenue Split
 
-### Platform Fee: 12.5%
+### Platform Fee: 15%
 
 For every booking:
 - **Service Price** → Goes to tech (via Stripe Connect backend)
-- **Service Fee (12.5%)** → Platform revenue
+- **Service Fee (15%)** → Platform revenue (this 15% may include referral rewards)
 - **Total Price** → Service Price + Service Fee
 
 ### Example
 
 Service Price: $80
-Service Fee: $10 (12.5%)
-Total Price: $90
+Service Fee: $12 (15%)
+Total Price: $92
 
-- Client pays: $90 (via Apple IAP)
+- Client pays: $92
 - Tech receives: $80 (transferred to their bank via Stripe Connect)
-- Platform keeps: $10
+- Platform keeps: $12 (of which up to 5% of service price may be shared with a referring tech)
 
 ## API Endpoints
 

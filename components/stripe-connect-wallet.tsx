@@ -202,7 +202,7 @@ export function StripeConnectWallet() {
             {isActive && (
               <>
                 Your wallet is active! When clients book appointments, you'll receive the service price directly to your account. 
-                The 12.5% platform fee is automatically deducted.
+                The 15% service fee (including any referral rewards) is automatically handled by the platform.
               </>
             )}
             {isPending && (
@@ -213,8 +213,8 @@ export function StripeConnectWallet() {
             )}
             {isNotSetup && (
               <>
-                Setup your payout wallet to receive payments from client bookings. The platform charges a 12.5% service fee, 
-                and you receive the remaining amount directly to your bank account.
+                Setup your payout wallet to receive payments from client bookings. The platform charges a 15% service fee to clients, 
+                and you receive the full service price directly to your bank account.
               </>
             )}
           </p>

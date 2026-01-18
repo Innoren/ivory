@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { users, referrals, creditTransactions } from '@/db/schema';
+import { users, referrals, creditTransactions, techProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { createSession } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       password, 
       authProvider = 'email', 
       referralCode,
+      techReferralCode, // Tech-to-tech referral code
       dateOfBirth,
       phoneNumber,
       phoneVerified = false
@@ -186,6 +187,19 @@ export async function POST(request: Request) {
       // Don't fail the signup if email fails
     });
 
+    // Store tech referral code in response for later processing when user becomes a tech
+    // The actual referral linking happens when the tech profile is created
+    let pendingTechReferralCode = null;
+    if (techReferralCode) {
+      // Verify the tech referral code exists
+      const referrerTech = await db.query.techProfiles.findFirst({
+        where: eq(techProfiles.techReferralCode, techReferralCode.toUpperCase()),
+      });
+      if (referrerTech) {
+        pendingTechReferralCode = techReferralCode.toUpperCase();
+      }
+    }
+
     return NextResponse.json({
       id: newUser[0].id,
       username: newUser[0].username,
@@ -199,6 +213,7 @@ export async function POST(request: Request) {
       phoneVerified: newUser[0].phoneVerified,
       createdAt: newUser[0].createdAt,
       isNewUser: true, // Flag to trigger PostHog signup tracking on client
+      pendingTechReferralCode, // Pass to client for tech profile creation
     });
   } catch (error) {
     console.error('Signup error:', error);

@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       noShowFeeEnabled,
       noShowFeePercent,
       cancellationWindowHours,
+      techReferralCode, // Tech-to-tech referral code
     } = body;
 
     if (!userId) {
@@ -78,6 +79,17 @@ export async function POST(request: NextRequest) {
     const existingProfile = await db.query.techProfiles.findFirst({
       where: eq(techProfiles.userId, userId),
     });
+
+    // Check if tech referral code is valid (only for new profiles)
+    let referredByTechId: number | null = null;
+    if (techReferralCode && !existingProfile) {
+      const referrerTech = await db.query.techProfiles.findFirst({
+        where: eq(techProfiles.techReferralCode, techReferralCode.toUpperCase()),
+      });
+      if (referrerTech) {
+        referredByTechId = referrerTech.id;
+      }
+    }
 
     const profileData = {
       userId,
@@ -104,17 +116,18 @@ export async function POST(request: NextRequest) {
         .where(eq(techProfiles.userId, userId))
         .returning();
     } else {
-      // Create new profile
+      // Create new profile with referral if applicable
       [profile] = await db
         .insert(techProfiles)
         .values({
           ...profileData,
+          referredByTechId,
           createdAt: new Date(),
         })
         .returning();
     }
 
-    return NextResponse.json({ profile });
+    return NextResponse.json({ profile, referredByTechId });
   } catch (error) {
     console.error('Error saving tech profile:', error);
     return NextResponse.json({ error: 'Failed to save profile' }, { status: 500 });
