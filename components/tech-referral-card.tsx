@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Share2, Copy, Check, Users, DollarSign, TrendingUp, Wallet, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 
 interface ReferralStats {
   referralCode: string | null;
@@ -34,10 +35,24 @@ export function TechReferralCard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
+  const [isNativeIOS, setIsNativeIOS] = useState(false);
 
   useEffect(() => {
+    // Check if running on native iOS - hide referral program for Apple compliance
+    const checkPlatform = () => {
+      const isNative = Capacitor.isNativePlatform();
+      const isIOS = Capacitor.getPlatform() === 'ios';
+      setIsNativeIOS(isNative && isIOS);
+    };
+    checkPlatform();
+    
     fetchReferralStats();
   }, []);
+
+  // Don't render on native iOS (Apple compliance - no external payment references)
+  if (isNativeIOS) {
+    return null;
+  }
 
   const fetchReferralStats = async () => {
     try {

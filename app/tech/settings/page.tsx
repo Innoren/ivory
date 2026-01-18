@@ -7,6 +7,7 @@ import { ArrowLeft, Shield, Bell, Lock, Trash2, HelpCircle, UserX, CreditCard, C
 import { BottomNav } from '@/components/bottom-nav';
 import { StripeConnectWallet } from '@/components/stripe-connect-wallet';
 import { TechReferralCard } from '@/components/tech-referral-card';
+import { Capacitor } from '@capacitor/core';
 
 export default function TechSettingsPage() {
   const router = useRouter();
@@ -15,8 +16,14 @@ export default function TechSettingsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('inactive');
   const [isTech, setIsTech] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isNativeIOS, setIsNativeIOS] = useState(false);
 
   useEffect(() => {
+    // Check if running on native iOS
+    const isNative = Capacitor.isNativePlatform();
+    const isIOS = Capacitor.getPlatform() === 'ios';
+    setIsNativeIOS(isNative && isIOS);
+    
     const loadUserData = async () => {
       const userStr = localStorage.getItem('ivoryUser');
       if (!userStr) {
@@ -177,13 +184,15 @@ export default function TechSettingsPage() {
           </div>
         </div>
 
-        {/* Tech Referral Program */}
-        <div className="mt-6">
-          <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Referral Program</p>
-          <div className="bg-white p-4 border-b border-[#E8E8E8]">
-            <TechReferralCard />
+        {/* Tech Referral Program - Hidden on native iOS for Apple compliance */}
+        {!isNativeIOS && (
+          <div className="mt-6">
+            <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Referral Program</p>
+            <div className="bg-white p-4 border-b border-[#E8E8E8]">
+              <TechReferralCard />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Credits */}
         <div className="mt-6">

@@ -14,6 +14,7 @@ import { BuyCreditsDialog } from "@/components/buy-credits-dialog"
 import { AnimatedTabs } from "@/components/animated-tabs"
 import CustomerServiceChatbot from "@/components/customer-service-chatbot"
 import { TechReferralCard } from "@/components/tech-referral-card"
+import { Capacitor } from "@capacitor/core"
 
 type ClientRequest = {
   id: string
@@ -40,8 +41,14 @@ export default function TechDashboardPage() {
   const [activeTab, setActiveTab] = useState("requests")
   const [subscriptionTier, setSubscriptionTier] = useState('free')
   const [subscriptionStatus, setSubscriptionStatus] = useState('inactive')
+  const [isNativeIOS, setIsNativeIOS] = useState(false)
 
   useEffect(() => {
+    // Check if running on native iOS - hide referral program for Apple compliance
+    const isNative = Capacitor.isNativePlatform()
+    const isIOS = Capacitor.getPlatform() === 'ios'
+    setIsNativeIOS(isNative && isIOS)
+    
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
     if (tabParam && ['requests', 'approved', 'designs', 'gallery'].includes(tabParam)) {
@@ -167,10 +174,12 @@ export default function TechDashboardPage() {
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 py-5 sm:py-8 lg:py-10 pb-safe">
 
-        {/* Tech Referral Program Card - Prominent placement */}
-        <div className="mb-6 sm:mb-8">
-          <TechReferralCard />
-        </div>
+        {/* Tech Referral Program Card - Hidden on native iOS for Apple compliance */}
+        {!isNativeIOS && (
+          <div className="mb-6 sm:mb-8">
+            <TechReferralCard />
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full mb-5 sm:mb-8 grid grid-cols-4 h-auto bg-white border border-[#E8E8E8] p-0 rounded-none shadow-sm">
