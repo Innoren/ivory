@@ -412,24 +412,27 @@ export default function TechBookingsPage() {
                 Bookings
               </h1>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowManualBookingDialog(true)}
-              className="h-9 text-[11px] border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355] hover:text-white"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1.5" strokeWidth={2} />
-              Create Appointment
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/tech/availability')}
-              className="h-9 text-[11px] border-[#E8E8E8]"
-            >
-              <Calendar className="w-3.5 h-3.5 mr-1.5" strokeWidth={2} />
-              Availability
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowManualBookingDialog(true)}
+                className="h-8 sm:h-9 text-[10px] sm:text-[11px] px-2.5 sm:px-3 border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355] hover:text-white transition-all duration-300 active:scale-95 touch-manipulation"
+              >
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 sm:mr-1.5" strokeWidth={2} />
+                <span className="hidden sm:inline">Create Appointment</span>
+                <span className="sm:hidden">Create</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/tech/availability')}
+                className="h-8 sm:h-9 text-[10px] sm:text-[11px] px-2.5 sm:px-3 border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-300 active:scale-95 touch-manipulation"
+              >
+                <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 sm:mr-1.5" strokeWidth={2} />
+                <span className="hidden sm:inline">Availability</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
