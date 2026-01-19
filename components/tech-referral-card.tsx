@@ -121,43 +121,39 @@ export function TechReferralCard() {
   // Show setup prompt if Stripe not connected
   if (!stats?.stripeSetupComplete) {
     return (
-      <div className="relative overflow-hidden border border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-700">
-        {/* Elegant gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#F8F7F5] via-white to-[#FDF8F3] opacity-50" />
+      <div className="relative overflow-hidden border border-[#E8E8E8] hover:border-[#D4D4D4] transition-all duration-500">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FAFAF9] via-white to-[#FAFAF9] opacity-60" />
         
-        <div className="relative p-6 sm:p-8 space-y-6">
+        <div className="relative p-5 sm:p-6 space-y-5">
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#8B7355]" />
-                <p className="text-[10px] tracking-[0.3em] uppercase text-[#8B7355] font-light">
+                <Sparkles className="w-4 h-4 text-[#8B7355]" />
+                <p className="text-[9px] tracking-[0.25em] uppercase text-[#8B7355] font-light">
                   Referral Program
                 </p>
               </div>
-              <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight">
+              <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">
                 Earn While You Grow
               </h3>
             </div>
           </div>
 
           {/* Value proposition */}
-          <p className="text-base text-[#6B6B6B] font-light leading-relaxed max-w-md">
-            Refer other nail techs and earn <span className="text-[#1A1A1A] font-medium">5% of their booking fees</span> — forever. 
+          <p className="text-sm text-[#6B6B6B] font-light leading-relaxed max-w-md">
+            Refer other nail techs and earn 5% of their booking fees. 
             Set up your payout wallet to unlock this feature.
           </p>
 
           {/* Stats preview */}
-          <div className="grid grid-cols-3 gap-4 py-4 border-y border-[#E8E8E8]">
+          <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#E8E8E8]">
             <div className="text-center">
               <p className="text-2xl sm:text-3xl font-light text-[#1A1A1A]">5%</p>
               <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light mt-1">Commission</p>
             </div>
-            <div className="text-center border-x border-[#E8E8E8]">
-              <p className="text-2xl sm:text-3xl font-light text-[#1A1A1A]">∞</p>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light mt-1">Lifetime</p>
-            </div>
-            <div className="text-center">
+            <div className="text-center border-l border-[#E8E8E8]">
               <p className="text-2xl sm:text-3xl font-light text-[#1A1A1A]">$0</p>
               <p className="text-[10px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light mt-1">To Start</p>
             </div>
@@ -166,9 +162,9 @@ export function TechReferralCard() {
           {/* CTA */}
           <Button
             onClick={() => window.location.href = '/tech/settings?tab=wallet'}
-            className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-700 h-12 sm:h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light"
+            className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-700 h-11 sm:h-12 text-[10px] tracking-[0.2em] uppercase rounded-none font-light"
           >
-            <Wallet className="w-4 h-4 mr-3" />
+            <Wallet className="w-4 h-4 mr-2.5" />
             Set Up Payout Wallet
           </Button>
         </div>
@@ -177,28 +173,28 @@ export function TechReferralCard() {
   }
 
   return (
-    <div className="relative overflow-hidden border border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-700">
-      {/* Elegant gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F8F7F5] via-white to-[#FDF8F3] opacity-50" />
+    <div className="relative overflow-hidden border border-[#E8E8E8] hover:border-[#D4D4D4] transition-all duration-500">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FAFAF9] via-white to-[#FAFAF9] opacity-60" />
       
-      <div className="relative p-6 sm:p-8 space-y-6">
+      <div className="relative p-5 sm:p-6 space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#8B7355]" />
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[#8B7355] font-light">
+              <Sparkles className="w-4 h-4 text-[#8B7355]" />
+              <p className="text-[9px] tracking-[0.25em] uppercase text-[#8B7355] font-light">
                 Referral Program
               </p>
             </div>
-            <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight">
+            <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">
               Grow Your Network
             </h3>
           </div>
           
           {/* Earnings badge */}
           {stats.stats.totalEarnings > 0 && (
-            <div className="bg-[#1A1A1A] text-white px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase font-light">
+            <div className="bg-[#1A1A1A] text-white px-2.5 py-1 text-[9px] tracking-[0.15em] uppercase font-light">
               ${stats.stats.totalEarnings.toFixed(2)} Earned
             </div>
           )}
@@ -242,9 +238,9 @@ export function TechReferralCard() {
         {/* Share button */}
         <Button
           onClick={shareLink}
-          className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-700 h-12 sm:h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light"
+          className="w-full bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-500 h-11 sm:h-12 text-[10px] tracking-[0.2em] uppercase rounded-none font-light"
         >
-          <Share2 className="w-4 h-4 mr-3" />
+          <Share2 className="w-4 h-4 mr-2.5" />
           Share & Earn 5%
         </Button>
 
@@ -270,7 +266,7 @@ export function TechReferralCard() {
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 border border-[#E8E8E8] flex items-center justify-center text-[10px] text-[#8B7355] flex-shrink-0">3</div>
-                <p>You earn 5% of their booking fees — automatically, forever</p>
+                <p>You earn 5% of their booking fees automatically</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 border border-[#E8E8E8] flex items-center justify-center text-[10px] text-[#8B7355] flex-shrink-0">4</div>
