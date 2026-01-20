@@ -6,9 +6,10 @@ import { eq, and } from 'drizzle-orm';
 // PATCH /api/collections/[id] - Update collection
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Get session from cookie
     const cookieHeader = request.headers.get('cookie');
     const sessionCookie = cookieHeader?.split(';').find(c => c.trim().startsWith('session='));
@@ -27,7 +28,7 @@ export async function PATCH(
     }
 
     const user = { id: session.userId };
-    const collectionId = parseInt(params.id);
+    const collectionId = parseInt(id);
     const body = await request.json();
     const { name, description } = body;
 

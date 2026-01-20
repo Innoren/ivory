@@ -194,6 +194,23 @@ export default function TechSettingsPage() {
           </div>
         )}
 
+        {/* Website Builder */}
+        <div className="mt-6">
+          <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Your Website</p>
+          <div className="bg-white">
+            <SettingItem
+              icon={() => (
+                <svg className="w-5 h-5 text-[#6B6B6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+              )}
+              title="Website Builder"
+              subtitle="Create your booking website"
+              onClick={() => router.push('/tech/website')}
+            />
+          </div>
+        </div>
+
         {/* Credits */}
         <div className="mt-6">
           <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Credits</p>

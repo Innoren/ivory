@@ -702,3 +702,71 @@ export const techReferralEarningsRelations = relations(techReferralEarnings, ({ 
   }),
 }));
 
+
+// Tech Websites - Main website configuration for subdomain sites
+export const techWebsites = pgTable('tech_websites', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull().unique(),
+  subdomain: varchar('subdomain', { length: 100 }).notNull().unique(),
+  isPublished: boolean('is_published').default(true),
+  primaryColor: varchar('primary_color', { length: 7 }).default('#1A1A1A'),
+  secondaryColor: varchar('secondary_color', { length: 7 }).default('#8B7355'),
+  accentColor: varchar('accent_color', { length: 7 }).default('#F5F5F5'),
+  fontFamily: varchar('font_family', { length: 100 }).default('Inter'),
+  customCss: text('custom_css'),
+  seoTitle: varchar('seo_title', { length: 255 }),
+  seoDescription: text('seo_description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Website Sections - Modular page sections
+export const websiteSections = pgTable('website_sections', {
+  id: serial('id').primaryKey(),
+  websiteId: integer('website_id').references(() => techWebsites.id).notNull(),
+  sectionType: varchar('section_type', { length: 50 }).notNull(), // hero, about, services, gallery, reviews, booking, contact, social, faq, custom
+  displayOrder: integer('display_order').notNull().default(0),
+  isVisible: boolean('is_visible').default(true),
+  settings: jsonb('settings').default({}),
+  title: varchar('title', { length: 255 }),
+  subtitle: text('subtitle'),
+  content: text('content'),
+  backgroundImage: text('background_image'),
+  backgroundColor: varchar('background_color', { length: 7 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Website Chat History - AI chat messages for website customization
+export const websiteChatHistory = pgTable('website_chat_history', {
+  id: serial('id').primaryKey(),
+  websiteId: integer('website_id').references(() => techWebsites.id).notNull(),
+  role: varchar('role', { length: 20 }).notNull(), // 'user' or 'assistant'
+  content: text('content').notNull(),
+  changesMade: jsonb('changes_made'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Relations for tech websites
+export const techWebsitesRelations = relations(techWebsites, ({ one, many }) => ({
+  techProfile: one(techProfiles, {
+    fields: [techWebsites.techProfileId],
+    references: [techProfiles.id],
+  }),
+  sections: many(websiteSections),
+  chatHistory: many(websiteChatHistory),
+}));
+
+export const websiteSectionsRelations = relations(websiteSections, ({ one }) => ({
+  website: one(techWebsites, {
+    fields: [websiteSections.websiteId],
+    references: [techWebsites.id],
+  }),
+}));
+
+export const websiteChatHistoryRelations = relations(websiteChatHistory, ({ one }) => ({
+  website: one(techWebsites, {
+    fields: [websiteChatHistory.websiteId],
+    references: [techWebsites.id],
+  }),
+}));

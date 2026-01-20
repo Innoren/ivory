@@ -11,16 +11,29 @@ export async function POST(request: NextRequest) {
       techProfileId, 
       serviceId, 
       appointmentDate, 
+      // Support both naming conventions
       clientEmail,
+      guestEmail,
       clientPhone,
+      guestPhone,
       clientName,
-      clientNotes 
+      guestName,
+      clientNotes,
+      // Price fields (optional - will calculate if not provided)
+      servicePrice: providedServicePrice,
+      serviceFee: providedServiceFee,
+      totalPrice: providedTotalPrice,
     } = body;
 
+    // Normalize field names (support both guest* and client* prefixes)
+    const email = guestEmail || clientEmail;
+    const phone = guestPhone || clientPhone;
+    const name = guestName || clientName;
+
     // Validate required fields
-    if (!techProfileId || !serviceId || !appointmentDate || !clientEmail || !clientName) {
+    if (!techProfileId || !serviceId || !appointmentDate || !email || !name) {
       return NextResponse.json({ 
-        error: 'Missing required fields: techProfileId, serviceId, appointmentDate, clientEmail, clientName' 
+        error: 'Missing required fields: techProfileId, serviceId, appointmentDate, email, name' 
       }, { status: 400 });
     }
 
@@ -76,17 +89,17 @@ export async function POST(request: NextRequest) {
     // Try to find existing user by email, or create guest booking
     let clientId = null;
     const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, clientEmail),
+      where: eq(users.email, email),
     });
 
     if (existingUser) {
       clientId = existingUser.id;
     }
 
-    // Calculate prices
-    const servicePrice = parseFloat(service.price || '0');
-    const serviceFee = servicePrice * 0.15; // 15% service fee
-    const totalPrice = servicePrice + serviceFee;
+    // Calculate prices (use provided values or calculate from service)
+    const servicePrice = providedServicePrice ?? parseFloat(service.price || '0');
+    const serviceFee = providedServiceFee ?? (servicePrice * 0.15); // 15% service fee
+    const totalPrice = providedTotalPrice ?? (servicePrice + serviceFee);
 
     // Create booking (with or without clientId for guest bookings)
     const [newBooking] = await db.insert(bookings).values({
@@ -102,9 +115,9 @@ export async function POST(request: NextRequest) {
       clientNotes: clientNotes || null,
       status: 'pending',
       // Store guest info for non-registered users
-      guestEmail: clientId ? null : clientEmail,
-      guestPhone: clientId ? null : clientPhone,
-      guestName: clientId ? null : clientName,
+      guestEmail: clientId ? null : email,
+      guestPhone: clientId ? null : phone,
+      guestName: clientId ? null : name,
     }).returning();
 
     // Create notification for tech
@@ -112,7 +125,7 @@ export async function POST(request: NextRequest) {
       userId: techProfile.userId,
       type: 'booking_request',
       title: 'New Website Booking Request',
-      message: `New booking request from ${clientName} for ${service.name}`,
+      message: `New booking request from ${name} for ${service.name}`,
       relatedId: newBooking.id,
     });
 

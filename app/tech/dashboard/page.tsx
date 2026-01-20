@@ -181,6 +181,41 @@ export default function TechDashboardPage() {
           </div>
         )}
 
+        {/* Website Builder Card */}
+        <div className="mb-6 sm:mb-8">
+          <Card className="border border-[#E8E8E8] bg-gradient-to-br from-white to-[#F8F7F5] hover:border-[#8B7355] transition-all duration-700 rounded-none overflow-hidden">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#8B7355]/10 border border-[#8B7355]/20 flex items-center justify-center rounded-none flex-shrink-0">
+                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#8B7355]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] mb-1 tracking-[-0.01em]">
+                      Website Builder
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#6B6B6B] font-light leading-relaxed tracking-wide max-w-md">
+                      Create your own booking website with AI assistance. Get your custom subdomain.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => router.push('/tech/website')}
+                  size="sm"
+                  className="h-10 sm:h-11 px-5 sm:px-6 bg-[#1A1A1A] text-white hover:bg-[#8B7355] transition-all duration-700 whitespace-nowrap text-[10px] tracking-[0.2em] uppercase font-light hover:scale-[1.02] active:scale-[0.98] rounded-none"
+                >
+                  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                  Build Website
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full mb-5 sm:mb-8 grid grid-cols-4 h-auto bg-white border border-[#E8E8E8] p-0 rounded-none shadow-sm">
 

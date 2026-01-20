@@ -7,9 +7,10 @@ import { eq, and } from 'drizzle-orm'
 // Get job status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
+    const { jobId } = await params;
     const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -17,7 +18,7 @@ export async function GET(
 
     const job = await db.query.generationJobs.findFirst({
       where: and(
-        eq(generationJobs.id, params.jobId),
+        eq(generationJobs.id, parseInt(jobId)),
         eq(generationJobs.userId, session.id)
       ),
     })

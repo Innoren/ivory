@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { looks, dislikes } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const lookId = parseInt(params.id);
+    const { id } = await params;
+    const lookId = parseInt(id);
     
     // Get user from session
     const userStr = request.cookies.get('ivoryUser')?.value;
@@ -34,7 +35,7 @@ export async function POST(
       // Decrement dislike count
       await db
         .update(looks)
-        .set({ dislikeCount: db.$count(looks.dislikeCount) - 1 })
+        .set({ dislikeCount: sql`${looks.dislikeCount} - 1` })
         .where(eq(looks.id, lookId));
 
       return NextResponse.json({ disliked: false });
@@ -48,7 +49,7 @@ export async function POST(
       // Increment dislike count
       await db
         .update(looks)
-        .set({ dislikeCount: db.$count(looks.dislikeCount) + 1 })
+        .set({ dislikeCount: sql`${looks.dislikeCount} + 1` })
         .where(eq(looks.id, lookId));
 
       return NextResponse.json({ disliked: true });

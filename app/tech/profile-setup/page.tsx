@@ -36,6 +36,7 @@ export default function TechProfileSetupPage() {
   const [location, setLocation] = useState("")
   const [portfolioImages, setPortfolioImages] = useState<string[]>([])
   const [services, setServices] = useState<Service[]>([]);
+  const [availabilitySummary, setAvailabilitySummary] = useState<string>("")
   
   // No-show fee settings
   const [noShowFeeEnabled, setNoShowFeeEnabled] = useState(false)
@@ -902,7 +903,18 @@ export default function TechProfileSetupPage() {
               <div className="p-4 sm:p-5 bg-[#F8F7F5] border border-[#E8E8E8]">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-[#1A1A1A] mb-2">Set Your Availability</h3>
+                    <h3 className="text-sm font-medium text-[#1A1A1A] mb-2 flex items-center gap-3">
+                      Set Your Availability
+                      {availabilitySummary && (
+                        <span className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 border ${
+                          availabilitySummary === "Not Configured" 
+                            ? "border-red-200 text-red-600 bg-red-50" 
+                            : "border-emerald-200 text-emerald-600 bg-emerald-50"
+                        }`}>
+                          {availabilitySummary}
+                        </span>
+                      )}
+                    </h3>
                     <p className="text-xs text-[#6B6B6B] font-light leading-relaxed mb-3">
                       Configure your working hours so clients know when they can book appointments with you.
                     </p>

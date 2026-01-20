@@ -112,6 +112,8 @@ export default function TechAvailabilityPage() {
                 };
               });
               setSchedule(newSchedule);
+            } else {
+              setHasChanges(true);
             }
             
             if (data.timeOff?.length > 0) {

@@ -8,9 +8,10 @@ import { nanoid } from 'nanoid'
 // Auto-save completed generation job to user's collection
 export async function POST(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
+    const { jobId } = await params;
     const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -19,7 +20,7 @@ export async function POST(
     // Get the job
     const job = await db.query.generationJobs.findFirst({
       where: and(
-        eq(generationJobs.id, params.jobId),
+        eq(generationJobs.id, parseInt(jobId)),
         eq(generationJobs.userId, session.id)
       ),
     })
@@ -66,11 +67,9 @@ export async function POST(
     for (let i = 0; i < resultImages.length; i++) {
       const imageUrl = resultImages[i]
       
-      const lookId = nanoid()
       const shareToken = nanoid(10)
       
-      await db.insert(looks).values({
-        id: lookId,
+      const [newLook] = await db.insert(looks).values({
         userId: session.id,
         title: `Design ${new Date().toLocaleDateString()}${resultImages.length > 1 ? ` (${i + 1})` : ''}`,
         imageUrl: imageUrl,
@@ -82,10 +81,10 @@ export async function POST(
         viewCount: 0,
         likeCount: 0,
         dislikeCount: 0,
-      })
+      }).returning({ id: looks.id })
 
       savedLooks.push({
-        id: lookId,
+        id: newLook.id,
         imageUrl,
         shareToken,
       })
@@ -94,7 +93,7 @@ export async function POST(
     // Mark job as auto-saved
     await db.update(generationJobs)
       .set({ autoSaved: true })
-      .where(eq(generationJobs.id, params.jobId))
+      .where(eq(generationJobs.id, parseInt(jobId)))
 
     console.log(`✅ Auto-saved ${savedLooks.length} designs from job ${job.id}`)
 
