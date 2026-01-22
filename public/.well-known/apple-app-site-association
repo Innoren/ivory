@@ -3,16 +3,16 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.ivory.app",
+        "appID": "B46X894ZHC.com.ivory.app",
         "paths": [
-          "*"
+          "/booking/invite/*",
+          "/book/*",
+          "/shared/*",
+          "/share/*",
+          "/share-with-tech/*",
+          "/tech/*"
         ]
       }
-    ]
-  },
-  "webcredentials": {
-    "apps": [
-      "TEAM_ID.com.ivory.app"
     ]
   }
 }

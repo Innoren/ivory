@@ -66,8 +66,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Handle Universal Links
         if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
            let url = userActivity.webpageURL {
-            os_log("🔵 Universal Link: %@", log: logger, type: .info, url.absoluteString)
-            // Handle universal link
+            os_log("🔵 Universal Link received: %@", log: logger, type: .info, url.absoluteString)
+            
+            // Post notification to navigate to the deep link URL
+            NotificationCenter.default.post(
+                name: NSNotification.Name("HandleUniversalLink"),
+                object: nil,
+                userInfo: ["url": url]
+            )
+            
             return true
         }
         

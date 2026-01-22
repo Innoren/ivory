@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'out',
   // server: {
   //   // Production URL - COMMENT OUT for native builds with IAP
-  //   url: 'https://ivory-blond.vercel.app',
+  //   url: 'https://www.ivoryschoice.com',
   //   // For local development, uncomment below:
   //   // url: 'http://localhost:3000',
   //   // cleartext: true

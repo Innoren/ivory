@@ -18,6 +18,43 @@ class WebViewModel: ObservableObject {
     
     init() {
         setupMessageHandlers()
+        setupUniversalLinkObserver()
+    }
+    
+    // MARK: - Universal Links
+    
+    private func setupUniversalLinkObserver() {
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("HandleUniversalLink"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            if let url = notification.userInfo?["url"] as? URL {
+                self?.handleUniversalLink(url)
+            }
+        }
+    }
+    
+    func handleUniversalLink(_ url: URL) {
+        print("🔵 Handling Universal Link in WebViewModel: \(url.absoluteString)")
+        
+        // Extract the path from the universal link
+        let path = url.path
+        
+        // Navigate to the path in the web view
+        #if DEBUG
+        let baseURL = "http://localhost:3000"
+        #else
+        let baseURL = "https://www.ivoryschoice.com"
+        #endif
+        
+        if let targetURL = URL(string: baseURL + path) {
+            let request = URLRequest(url: targetURL)
+            DispatchQueue.main.async { [weak self] in
+                self?.webView?.load(request)
+                print("🔵 Navigating to: \(targetURL.absoluteString)")
+            }
+        }
     }
     
     // MARK: - Web App Loading
