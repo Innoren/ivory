@@ -13,6 +13,7 @@
     "db:studio": "drizzle-kit studio",
     "setup:moderation": "npx tsx scripts/setup-moderation.ts",
     "setup:services": "bash scripts/install-services.sh",
+    "update:tysnailboutique": "npx tsx scripts/update-tysnailboutique-website.ts",
     "export": "next build",
     "cap:sync": "cap sync",
     "cap:open:ios": "cap open ios",
