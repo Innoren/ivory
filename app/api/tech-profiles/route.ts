@@ -31,17 +31,20 @@ export async function GET(request: NextRequest) {
       });
 
       // Format the data for the send-to-tech page
-      const formattedProfiles = profiles.map(profile => ({
-        userId: profile.userId,
-        username: profile.user?.username || profile.businessName || 'Nail Tech',
-        businessName: profile.businessName,
-        location: profile.location || 'Location not set',
-        rating: 0, // TODO: Calculate actual rating from reviews
-        avatar: profile.user?.avatar || null, // Get avatar from user data
-        bio: profile.bio,
-        instagramHandle: profile.instagramHandle,
-        phoneNumber: profile.phoneNumber,
-      }));
+      const formattedProfiles = profiles.map(profile => {
+        const user = Array.isArray(profile.user) ? profile.user[0] : profile.user;
+        return {
+          userId: profile.userId,
+          username: user?.username || profile.businessName || 'Nail Tech',
+          businessName: profile.businessName,
+          location: profile.location || 'Location not set',
+          rating: 0, // TODO: Calculate actual rating from reviews
+          avatar: user?.avatar || null, // Get avatar from user data
+          bio: profile.bio,
+          instagramHandle: profile.instagramHandle,
+          phoneNumber: profile.phoneNumber,
+        };
+      });
 
       return NextResponse.json(formattedProfiles);
     }
