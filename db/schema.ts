@@ -77,6 +77,8 @@ export const techProfiles = pgTable('tech_profiles', {
   referredByTechId: integer('referred_by_tech_id').references((): any => techProfiles.id),
   totalReferralEarnings: decimal('total_referral_earnings', { precision: 10, scale: 2 }).default('0'),
   pendingReferralEarnings: decimal('pending_referral_earnings', { precision: 10, scale: 2 }).default('0'),
+  // Custom website URL for specific users (overrides website builder)
+  customWebsiteUrl: varchar('custom_website_url', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

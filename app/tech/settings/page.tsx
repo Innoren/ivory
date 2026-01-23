@@ -17,6 +17,7 @@ export default function TechSettingsPage() {
   const [isTech, setIsTech] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isNativeIOS, setIsNativeIOS] = useState(false);
+  const [customWebsiteUrl, setCustomWebsiteUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if running on native iOS
@@ -43,6 +44,19 @@ export default function TechSettingsPage() {
       setIsTech(true);
       setSubscriptionTier(user.subscriptionTier || 'free');
       setSubscriptionStatus(user.subscriptionStatus || 'inactive');
+
+      // Load tech profile to check for custom website URL
+      try {
+        const profileResponse = await fetch(`/api/tech-profiles?userId=${user.id}`);
+        if (profileResponse.ok) {
+          const profile = await profileResponse.json();
+          if (profile?.customWebsiteUrl) {
+            setCustomWebsiteUrl(profile.customWebsiteUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading tech profile:', error);
+      }
 
       // Load credits
       try {
@@ -198,16 +212,29 @@ export default function TechSettingsPage() {
         <div className="mt-6">
           <p className="px-4 pb-2 text-[10px] tracking-[0.25em] uppercase text-[#8B7355] font-light">Your Website</p>
           <div className="bg-white">
-            <SettingItem
-              icon={() => (
-                <svg className="w-5 h-5 text-[#6B6B6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                </svg>
-              )}
-              title="Website Builder"
-              subtitle="Create your booking website"
-              onClick={() => router.push('/tech/website')}
-            />
+            {customWebsiteUrl ? (
+              <SettingItem
+                icon={() => (
+                  <svg className="w-5 h-5 text-[#6B6B6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                )}
+                title="Visit Your Website"
+                subtitle={customWebsiteUrl.replace('https://', '')}
+                onClick={() => window.open(customWebsiteUrl, '_blank')}
+              />
+            ) : (
+              <SettingItem
+                icon={() => (
+                  <svg className="w-5 h-5 text-[#6B6B6B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                )}
+                title="Website Builder"
+                subtitle="Create your booking website"
+                onClick={() => router.push('/tech/website')}
+              />
+            )}
           </div>
         </div>
 

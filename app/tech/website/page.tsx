@@ -96,6 +96,13 @@ export default function WebsiteBuilderPage() {
           if (profileRes.ok) {
             const profile = await profileRes.json()
             if (profile) {
+              // Check if user has a custom website URL
+              if (profile.customWebsiteUrl) {
+                // Redirect to custom website
+                window.location.href = profile.customWebsiteUrl
+                return
+              }
+              
               setTechProfile(profile)
               setLoading(false)
               return
@@ -106,6 +113,14 @@ export default function WebsiteBuilderPage() {
         }
 
         const data = await response.json()
+        
+        // Check if tech profile has custom website URL
+        if (data.techProfile?.customWebsiteUrl) {
+          // Redirect to custom website
+          window.location.href = data.techProfile.customWebsiteUrl
+          return
+        }
+        
         setTechProfile(data.techProfile)
         setServices(data.services || [])
         setPortfolioImages(data.portfolioImages || [])
