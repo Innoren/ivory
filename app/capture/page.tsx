@@ -2100,76 +2100,7 @@ export default function CapturePage() {
               </div>
             </div>
             
-            {/* Elegant Tabs */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:justify-end scrollbar-hide">
-              {designTabs.map((tab) => (
-                <div key={tab.id} className="flex items-center gap-1 sm:gap-1.5">
-                  <button
-                    onClick={() => setActiveTabId(tab.id)}
-                    className={`h-8 sm:h-9 px-3 sm:px-4 font-light text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-500 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap rounded-none ${
-                      activeTabId === tab.id
-                        ? 'bg-[#1A1A1A] text-white shadow-sm'
-                        : 'border border-[#E8E8E8] text-[#1A1A1A] hover:bg-[#F8F7F5] hover:border-[#8B7355]'
-                    }`}
-                  >
-                    {tab.name}
-                    {/* Show reference image indicator */}
-                    {tab.selectedDesignImages && tab.selectedDesignImages.length > 0 && (
-                      <span 
-                        className={`text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm flex items-center gap-0.5 sm:gap-1 ${
-                          activeTabId === tab.id ? 'bg-white/20' : 'bg-[#8B7355]/10 text-[#8B7355]'
-                        }`}
-                        title={`${tab.selectedDesignImages.length} reference image${tab.selectedDesignImages.length > 1 ? 's' : ''}`}
-                      >
-                        <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                        </svg>
-                        {tab.selectedDesignImages.length}
-                      </span>
-                    )}
-                    {/* Show drawing indicator */}
-                    {tab.drawingImageUrl && (
-                      <span 
-                        className={`text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm ${
-                          activeTabId === tab.id ? 'bg-white/20' : 'bg-purple-100 text-purple-600'
-                        }`}
-                        title="Has drawing overlay"
-                      >
-                        <Pencil className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                      </span>
-                    )}
-                    {tab.isGenerating && (
-                      <Loader2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-spin" />
-                    )}
-                    {!tab.isGenerating && tab.finalPreviews.length > 0 && (
-                      <span className={`text-[8px] sm:text-[9px] px-1 py-0.5 rounded-sm ${
-                        activeTabId === tab.id ? 'bg-white/20' : 'bg-[#F8F7F5]'
-                      }`}>
-                        {tab.finalPreviews.length}
-                      </span>
-                    )}
-                  </button>
-                  {designTabs.length > 1 && (
-                    <button
-                      onClick={() => removeTab(tab.id)}
-                      className="w-6 h-6 sm:w-7 sm:h-7 border border-[#E8E8E8] text-[#6B6B6B] hover:bg-[#F8F7F5] hover:text-[#1A1A1A] hover:border-[#8B7355] transition-all duration-500 flex items-center justify-center rounded-none"
-                    >
-                      <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={1} />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {designTabs.length < 5 && (
-                <button
-                  onClick={addNewTab}
-                  className="h-8 sm:h-9 px-3 sm:px-4 border border-[#E8E8E8] text-[#1A1A1A] font-light text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] uppercase hover:bg-[#F8F7F5] hover:border-[#8B7355] transition-all duration-500 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap rounded-none"
-                >
-                  <span className="text-sm sm:text-base leading-none">+</span>
-                  <span className="hidden sm:inline">New Design</span>
-                  <span className="sm:hidden">New</span>
-                </button>
-              )}
-            </div>
+
           </div>
         </div>
 
