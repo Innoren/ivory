@@ -8,7 +8,7 @@
 
 ## Table of Contents
 
-1. [About Ivories Choice](#about-ivorys-choice)
+1. [About Ivories Choice](#about-ivories-choice)
 2. [Account Management](#account-management)
 3. [Pricing & Subscriptions](#pricing--subscriptions)
 4. [Credits System](#credits-system)
@@ -27,7 +27,7 @@
 
 ### What is Ivories Choice?
 
-Ivory's Choice is an AI-powered nail design platform that connects clients with professional nail technicians. The app allows users to:
+Ivories Choice is an AI-powered nail design platform that connects clients with professional nail technicians. The app allows users to:
 
 - **Generate custom nail designs** using AI technology
 - **Capture photos** of their hands and visualize designs on them
@@ -239,7 +239,7 @@ Yes! You can change your user type:
 1. Open iPhone **Settings**
 2. Tap your name at top
 3. Tap **Subscriptions**
-4. Select **Ivory's Choice**
+4. Select **Ivories Choice**
 5. Tap **Cancel Subscription**
 
 **Web:**
@@ -364,7 +364,7 @@ Credits are the currency used to generate AI nail designs. Each AI design genera
    - Share via link or copy code
 
 2. **Share Your Code:**
-   - Share link: `https://ivoryschoice.com/signup?ref=YOUR_CODE`
+   - Share link: `https://ivorieschoice.com/signup?ref=YOUR_CODE`
    - Or share code directly: `YOUR_CODE`
    - Friends enter code during signup
 
@@ -1256,7 +1256,7 @@ We may suspend or terminate accounts for:
 - Fraudulent activity
 - Repeated violations
 
-**Full Terms:** Available at https://ivoryschoice.com/terms
+**Full Terms:** Available at https://ivorieschoice.com/terms
 
 ### Privacy Policy
 
@@ -1278,7 +1278,7 @@ We may suspend or terminate accounts for:
 - Opt-out of marketing
 - Object to data processing
 
-**Full Policy:** Available at https://ivoryschoice.com/privacy-policy
+**Full Policy:** Available at https://ivorieschoice.com/privacy-policy
 
 ### Intellectual Property
 
@@ -1299,7 +1299,7 @@ We may suspend or terminate accounts for:
 **Copyright Infringement:**
 
 If you believe content infringes your copyright:
-1. Email legal@ivory.app
+1. Email mirrosocial@gmail.com
 2. Include:
    - Your contact information
    - Description of copyrighted work
@@ -1482,10 +1482,10 @@ If you believe content infringes your copyright:
 
 ### Important Links
 
-- **Website:** https://ivoryschoice.com
+- **Website:** https://ivorieschoice.com
 - **Support Email:** mirrosocial@gmail.com
-- **Terms of Service:** https://ivoryschoice.com/terms
-- **Privacy Policy:** https://ivoryschoice.com/privacy-policy
+- **Terms of Service:** https://ivorieschoice.com/terms
+- **Privacy Policy:** https://ivorieschoice.com/privacy-policy
 
 ### Key Policies
 
@@ -2291,8 +2291,8 @@ If you believe content infringes your copyright:
    - Check email apps on your phone
 
 2. **Search your email:**
-   - Search for "Ivory's Choice"
-   - Search for "ivoryschoice.com"
+   - Search for "Ivories's Choice"
+   - Search for "Ivoriesschoice.com"
    - Look for signup confirmation
    - Look for credit purchase receipts
 
@@ -2579,7 +2579,7 @@ Contact support with:
 - Attempt 2: "French tips with glitter" → White tips with glitter
 - Attempt 3: "Reverse French tips with rose gold glitter and matte top coat" → Unique design
 
-#### "Can I use Ivory's Choice designs for my nail salon's Instagram?"
+#### "Can I use Ivories's Choice designs for my nail salon's Instagram?"
 
 **It depends on how you use them:**
 
@@ -2587,7 +2587,7 @@ Contact support with:
 - Posting designs you actually created on real clients
 - Using AI designs as inspiration for your work
 - Showing before/after with AI preview and real result
-- Crediting Ivory's Choice when sharing AI previews
+- Crediting Ivories's Choice when sharing AI previews
 - Using in your portfolio on our platform
 
 **❌ Not allowed:**
@@ -2599,7 +2599,7 @@ Contact support with:
 
 **Best practices:**
 1. Always disclose when showing AI previews
-2. Caption: "AI design preview from @ivoryschoice"
+2. Caption: "AI design preview from @Ivoriesschoice"
 3. Show real results alongside AI previews
 4. Don't mislead followers
 5. Credit the platform
@@ -2732,7 +2732,7 @@ Contact support with:
 - This is how social platforms work
 - Make designs private if concerned
 
-#### "Does Ivory's Choice sell my data to advertisers?"
+#### "Does Ivories's Choice sell my data to advertisers?"
 
 **No. We do not sell your personal data.**
 
@@ -3610,7 +3610,7 @@ Contact support with:
 
 ### Platform Comparison & Competition
 
-#### "Why should I use Ivory's Choice instead of just showing my nail tech a Pinterest photo?"
+#### "Why should I use Ivories's Choice instead of just showing my nail tech a Pinterest photo?"
 
 **Great question. Here's what we offer:**
 
@@ -3652,7 +3652,7 @@ Contact support with:
 
 **You can use both:**
 - Find inspiration on Pinterest
-- Upload to Ivory's Choice
+- Upload to Ivories's Choice
 - Apply to your hands
 - Book with nail tech
 - Best of both worlds
@@ -3667,7 +3667,7 @@ Contact support with:
 - Immediate service
 - No technology needed
 
-**Ivory's Choice advantages:**
+**Ivories's Choice advantages:**
 - Unlimited design options
 - See on YOUR hands first
 - Find techs who specialize in your style
@@ -3677,7 +3677,7 @@ Contact support with:
 - Try designs before committing
 
 **Best approach:**
-- Use Ivory's Choice to explore ideas
+- Use Ivories's Choice to explore ideas
 - Generate personalized designs
 - Find the perfect tech for your style
 - Book appointment
@@ -3685,7 +3685,7 @@ Contact support with:
 
 **For nail techs:**
 - Salon book shows your work
-- Ivory's Choice brings you new clients
+- Ivories's Choice brings you new clients
 - Expands beyond walk-ins
 - Showcases your range
 - Builds online presence
@@ -3772,7 +3772,7 @@ Contact support with:
 - No nail specialization
 - No integrated features
 
-**Ivory's Choice:**
+**Ivories's Choice:**
 - ✅ Specialized for nail designs
 - ✅ Applies to YOUR hands
 - ✅ Nail-specific parameters
@@ -3790,7 +3790,7 @@ Contact support with:
 - Book via text
 - Pay via Venmo
 
-**Or use Ivory's Choice:**
+**Or use Ivories Choice:**
 - Everything in one place
 - Designed specifically for nails
 - Seamless experience
@@ -3851,7 +3851,7 @@ Contact support with:
 - Won't affect your standing
 - Client can't leave bad review for declined booking
 
-#### "What happens if Ivory's Choice shuts down? Do I lose all my credits and designs?"
+#### "What happens if Ivories Choice shuts down? Do I lose all my credits and designs?"
 
 **Honest answer: Yes, but here's the full picture:**
 
