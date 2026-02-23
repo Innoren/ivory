@@ -1,0 +1,724 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, MapPin, Star, Phone, Globe, Instagram, DollarSign, Clock, Navigation, Sparkles, UserPlus, ExternalLink, Palette, Scissors, Brush } from 'lucide-react';
+import { TechLocationMap } from '@/components/tech-location-map';
+import { BottomNav } from '@/components/bottom-nav';
+import Image from 'next/image';
+
+// Helper function to get service icons based on service name
+const getServiceIcon = (serviceName: string) => {
+  const name = serviceName.toLowerCase();
+  
+  if (name.includes('full set') || name.includes('acrylic') || name.includes('gel set')) {
+    return Palette;
+  } else if (name.includes('manicure') || name.includes('mani')) {
+    return Brush;
+  } else if (name.includes('pedicure') || name.includes('pedi')) {
+    return Sparkles;
+  } else if (name.includes('removal') || name.includes('cut') || name.includes('trim')) {
+    return Scissors;
+  } else if (name.includes('design') || name.includes('art') || name.includes('custom')) {
+    return Palette;
+  } else {
+    return Brush; // Default icon
+  }
+};
+
+// Helper function to get social media URLs and icons
+const getSocialMediaInfo = (platform: string, handle: string) => {
+  const platformLower = platform.toLowerCase();
+  
+  switch (platformLower) {
+    case 'instagram':
+      return {
+        url: `https://instagram.com/${handle.replace('@', '')}`,
+        icon: Instagram,
+        displayName: `@${handle.replace('@', '')}`
+      };
+    case 'tiktok':
+      return {
+        url: `https://tiktok.com/@${handle.replace('@', '')}`,
+        icon: ExternalLink, // TikTok icon not available in Lucide
+        displayName: `@${handle.replace('@', '')}`
+      };
+    case 'facebook':
+      return {
+        url: `https://facebook.com/${handle}`,
+        icon: ExternalLink, // Facebook icon not available in Lucide
+        displayName: handle
+      };
+    case 'youtube':
+      return {
+        url: `https://youtube.com/@${handle.replace('@', '')}`,
+        icon: ExternalLink,
+        displayName: `@${handle.replace('@', '')}`
+      };
+    case 'pinterest':
+      return {
+        url: `https://pinterest.com/${handle.replace('@', '')}`,
+        icon: ExternalLink,
+        displayName: handle
+      };
+    case 'linkedin':
+      return {
+        url: `https://linkedin.com/in/${handle}`,
+        icon: ExternalLink,
+        displayName: handle
+      };
+    default:
+      return {
+        url: handle.startsWith('http') ? handle : `https://${handle}`,
+        icon: ExternalLink,
+        displayName: platform
+      };
+  }
+};
+
+export default function TechProfilePage() {
+  const router = useRouter();
+  const params = useParams();
+  const techId = params.id as string;
+  const [tech, setTech] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('services');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetchTechProfile();
+    checkAuthStatus();
+  }, [techId]);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/session');
+      setIsAuthenticated(response.ok);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
+  };
+
+  const fetchTechProfile = async () => {
+    try {
+      const response = await fetch(`/api/tech/${techId}`);
+      const data = await response.json();
+      if (response.ok) {
+        setTech(data.tech);
+      }
+    } catch (error) {
+      console.error('Error fetching tech profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-2 border-[#1A1A1A] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-[11px] tracking-[0.25em] uppercase text-[#6B6B6B] font-light">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tech) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="text-center space-y-8">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto border border-[#E8E8E8] flex items-center justify-center">
+            <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-[#E8E8E8]" strokeWidth={1} />
+          </div>
+          <div>
+            <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-light text-[#1A1A1A] mb-4 tracking-[-0.01em]">
+              Profile Not Found
+            </h2>
+            <p className="text-base text-[#6B6B6B] font-light tracking-wide">
+              This nail technician profile doesn't exist
+            </p>
+          </div>
+          <Button 
+            onClick={() => router.back()}
+            className="bg-[#1A1A1A] hover:bg-[#8B7355] text-white h-14 px-10 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
+          >
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white pb-28 sm:pb-32">
+      {/* Elegant Header */}
+      <header className="bg-white border-b border-[#E8E8E8] sticky top-0 z-50 backdrop-blur-md bg-white/98">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-16 py-6 sm:py-8">
+          <button 
+            onClick={() => router.back()} 
+            className="flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] hover:text-[#8B7355] transition-colors duration-500 font-light group mb-6"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-500" strokeWidth={1.5} />
+            Back
+          </button>
+          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-light text-[#1A1A1A] tracking-[-0.01em]">
+            Nail Technician Profile
+          </h1>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <div className="bg-gradient-to-b from-[#F8F7F5] to-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+            {/* Profile Info */}
+            <div className="space-y-8 sm:space-y-10">
+              <div className="flex items-start gap-6">
+                {tech.user?.avatar && (
+                  <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
+                    <Image
+                      src={tech.user.avatar}
+                      alt={tech.businessName}
+                      fill
+                      className="rounded-full object-cover border-2 border-[#E8E8E8]"
+                      sizes="112px"
+                    />
+                    {tech.isVerified && (
+                      <div className="absolute -bottom-1 -right-1 bg-[#8B7355] text-white rounded-full p-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em] mb-4">
+                    {tech.businessName || tech.user?.username}
+                  </h2>
+                  <div className="flex items-center gap-2 text-base text-[#6B6B6B] mb-4 font-light">
+                    <MapPin className="h-5 w-5 flex-shrink-0" strokeWidth={1.5} />
+                    <span className="truncate tracking-wide">{tech.location || 'Location not set'}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-6 w-6 fill-[#8B7355] text-[#8B7355]" strokeWidth={1.5} />
+                      <span className="text-xl font-light text-[#1A1A1A]">{tech.rating || '0.00'}</span>
+                    </div>
+                    <span className="text-base text-[#6B6B6B] font-light tracking-wide">
+                      ({tech.totalReviews || 0} reviews)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {tech.bio && (
+                <div className="p-6 sm:p-8 bg-[#F8F7F5] border border-[#E8E8E8]">
+                  <p className="text-[10px] tracking-[0.25em] uppercase text-[#8B7355] mb-3 font-light">About</p>
+                  <p className="text-base sm:text-lg text-[#6B6B6B] leading-[1.7] font-light tracking-wide">
+                    {tech.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Contact & Social Info */}
+              <div className="space-y-4">
+                {/* Primary Contact */}
+                <div className="flex flex-wrap gap-4">
+                  {tech.phoneNumber && (
+                    <a 
+                      href={`tel:${tech.phoneNumber}`} 
+                      className="flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                    >
+                      <Phone className="h-4 w-4" strokeWidth={1.5} />
+                      <span className="hidden sm:inline">{tech.phoneNumber}</span>
+                      <span className="sm:hidden">Call</span>
+                    </a>
+                  )}
+                  {tech.website && (
+                    <a 
+                      href={tech.website.startsWith('http') ? tech.website : `https://${tech.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                    >
+                      <Globe className="h-4 w-4" strokeWidth={1.5} />
+                      Website
+                    </a>
+                  )}
+                </div>
+
+                {/* Social Media - Subtle grouped display */}
+                {(tech.instagramHandle || tech.tiktokHandle || tech.facebookHandle || (tech.otherSocialLinks && tech.otherSocialLinks.length > 0)) && (
+                  <div>
+                    <p className="text-[9px] tracking-[0.3em] uppercase text-[#8B8B8B] mb-2 font-light">Follow</p>
+                    <div className="flex flex-wrap gap-3">
+                      {tech.instagramHandle && (
+                        <a 
+                          href={`https://instagram.com/${tech.instagramHandle.replace('@', '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                        >
+                          <Instagram className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <span>@{tech.instagramHandle.replace('@', '')}</span>
+                        </a>
+                      )}
+                      {tech.tiktokHandle && (
+                        <a 
+                          href={`https://tiktok.com/@${tech.tiktokHandle.replace('@', '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <span>TikTok</span>
+                        </a>
+                      )}
+                      {tech.facebookHandle && (
+                        <a 
+                          href={`https://facebook.com/${tech.facebookHandle}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <span>Facebook</span>
+                        </a>
+                      )}
+                      {tech.otherSocialLinks && tech.otherSocialLinks.length > 0 && (
+                        tech.otherSocialLinks.map((link: any, index: number) => {
+                          if (!link.platform || (!link.handle && !link.url)) return null;
+                          
+                          const socialInfo = getSocialMediaInfo(link.platform, link.handle || link.url);
+                          const Icon = socialInfo.icon;
+                          
+                          return (
+                            <a 
+                              key={index}
+                              href={link.url || socialInfo.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#8B7355] transition-colors duration-500 font-light"
+                            >
+                              <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                              <span>{link.platform}</span>
+                            </a>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="flex items-start justify-center lg:justify-end">
+              {isAuthenticated ? (
+                <Button 
+                  onClick={() => router.push(`/book/${techId}`)}
+                  className="w-full sm:w-auto bg-[#1A1A1A] hover:bg-[#8B7355] text-white h-14 sm:h-16 px-10 sm:px-16 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Book Appointment
+                </Button>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <Button 
+                    onClick={() => router.push('/')}
+                    className="w-full sm:w-auto bg-[#1A1A1A] hover:bg-[#8B7355] text-white h-14 sm:h-16 px-8 sm:px-12 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                    Sign Up to Book
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => router.push('/')}
+                    className="w-full sm:w-auto border-[#1A1A1A] hover:border-[#8B7355] hover:bg-transparent text-[#1A1A1A] hover:text-[#8B7355] h-14 sm:h-16 px-8 sm:px-12 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
+                  >
+                    Browse More Techs
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="sticky top-[90px] sm:top-[110px] z-40 bg-white border-b border-[#E8E8E8]">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-16">
+          <div className="flex gap-8 sm:gap-12 overflow-x-auto scrollbar-hide">
+            {['services', 'portfolio', 'reviews', 'location'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-5 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase font-light whitespace-nowrap transition-all duration-500 border-b-2 ${
+                  activeTab === tab
+                    ? 'border-[#1A1A1A] text-[#1A1A1A]'
+                    : 'border-transparent text-[#6B6B6B] hover:text-[#8B7355]'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
+        {/* Services Tab */}
+        {activeTab === 'services' && (
+          <div>
+            <div className="mb-8 sm:mb-12 lg:mb-16 text-center">
+              <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#8B7355] mb-3 sm:mb-4 font-light">
+                Services
+              </p>
+              <h3 className="font-serif text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em] mb-3 sm:mb-4">
+                What We Offer
+              </h3>
+              <p className="text-sm sm:text-base lg:text-lg text-[#6B6B6B] font-light max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
+                Professional nail services crafted with precision and artistry
+              </p>
+            </div>
+            
+            {tech.services && tech.services.length > 0 ? (
+              <div className="space-y-8">
+                {/* Featured/Popular Services */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                  {tech.services.slice(0, 3).map((service: any, index: number) => {
+                    const ServiceIcon = getServiceIcon(service.name);
+                    return (
+                      <div 
+                        key={service.id} 
+                        className="group relative overflow-hidden bg-gradient-to-br from-white to-[#F8F7F5] border border-[#E8E8E8] hover:border-[#8B7355] transition-all duration-700 hover:shadow-2xl hover:shadow-[#8B7355]/10 hover:-translate-y-1"
+                      >
+                        {/* Service Icon Background */}
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
+                          <ServiceIcon className="w-16 h-16 sm:w-20 sm:h-20" strokeWidth={0.5} />
+                        </div>
+                        
+                        <div className="relative p-6 sm:p-8 lg:p-10">
+                          {/* Popular Badge */}
+                          {index === 0 && (
+                            <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-[#8B7355] text-white px-3 py-1 sm:px-4 sm:py-1 text-[8px] sm:text-[9px] tracking-[0.2em] uppercase font-light transform rotate-12">
+                              Popular
+                            </div>
+                          )}
+                          
+                          {/* Service Icon */}
+                          <div className="mb-4 sm:mb-6">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#8B7355]/10 rounded-full flex items-center justify-center group-hover:bg-[#8B7355]/20 transition-colors duration-700">
+                              <ServiceIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#8B7355]" strokeWidth={1.5} />
+                            </div>
+                          </div>
+                          
+                          {/* Service Details */}
+                          <div className="space-y-3 sm:space-y-4">
+                            <h4 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light text-[#1A1A1A] tracking-tight leading-tight">
+                              {service.name}
+                            </h4>
+                            
+                            <p className="text-sm sm:text-base text-[#6B6B6B] font-light leading-relaxed tracking-wide">
+                              {service.description || 'Professional nail service with attention to detail and quality.'}
+                            </p>
+                            
+                            {/* Price and Duration */}
+                            <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-[#E8E8E8]/50">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#8B7355]/10 rounded-full flex items-center justify-center">
+                                  <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8B7355]" strokeWidth={2} />
+                                </div>
+                                <span className="text-xl sm:text-2xl font-serif font-light text-[#1A1A1A]">{service.price}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6B6B6B] font-light">
+                                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={1.5} />
+                                <span>{service.duration} min</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Additional Services */}
+                {tech.services.length > 3 && (
+                  <div className="mt-8 sm:mt-12">
+                    <div className="text-center mb-6 sm:mb-8">
+                      <h4 className="font-serif text-xl sm:text-2xl lg:text-3xl font-light text-[#1A1A1A] tracking-tight mb-2">
+                        Additional Services
+                      </h4>
+                      <p className="text-xs sm:text-sm text-[#6B6B6B] font-light tracking-wide px-4 sm:px-0">
+                        More ways we can help you look your best
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+                      {tech.services.slice(3).map((service: any) => {
+                        const ServiceIcon = getServiceIcon(service.name);
+                        return (
+                          <div 
+                            key={service.id} 
+                            className="group flex items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-white border border-[#E8E8E8] hover:border-[#8B7355] hover:shadow-lg transition-all duration-500"
+                          >
+                            {/* Service Icon */}
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#8B7355]/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-[#8B7355]/20 transition-colors duration-500">
+                              <ServiceIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B7355]" strokeWidth={1.5} />
+                            </div>
+                            
+                            {/* Service Info */}
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight mb-1">
+                                {service.name}
+                              </h5>
+                              <p className="text-xs sm:text-sm text-[#6B6B6B] font-light leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                                {service.description || 'Professional service with quality results.'}
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg sm:text-xl font-serif font-light text-[#1A1A1A]">${service.price}</span>
+                                <span className="text-xs text-[#6B6B6B] font-light">{service.duration} min</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            ) : (
+              <div className="py-20 text-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-8 border border-[#E8E8E8] flex items-center justify-center">
+                  <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-[#E8E8E8]" strokeWidth={1} />
+                </div>
+                <h4 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight mb-4">
+                  Services Coming Soon
+                </h4>
+                <p className="text-base text-[#6B6B6B] font-light tracking-wide max-w-md mx-auto">
+                  This nail technician is setting up their service menu. Check back soon for available treatments.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Portfolio Tab */}
+        {activeTab === 'portfolio' && (
+          <div>
+            <div className="mb-12 sm:mb-16 text-center">
+              <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#8B7355] mb-4 font-light">
+                Portfolio
+              </p>
+              <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em]">
+                Our Work
+              </h3>
+            </div>
+            {tech.portfolioImages && tech.portfolioImages.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7 lg:gap-8">
+                {tech.portfolioImages.map((img: any) => (
+                  <div key={img.id} className="group cursor-pointer" onClick={() => window.open(img.imageUrl, '_blank')}>
+                    <div className="relative aspect-[4/5] overflow-hidden">
+                      <Image
+                        src={img.imageUrl}
+                        alt={img.caption || 'Portfolio'}
+                        fill
+                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    </div>
+                    {img.caption && (
+                      <p className="text-sm text-[#6B6B6B] mt-3 font-light tracking-wide">{img.caption}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-20 text-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-8 border border-[#E8E8E8] flex items-center justify-center">
+                  <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-[#E8E8E8]" strokeWidth={1} />
+                </div>
+                <p className="text-base text-[#6B6B6B] font-light tracking-wide">
+                  No portfolio images yet
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div>
+            <div className="mb-12 sm:mb-16 text-center">
+              <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#8B7355] mb-4 font-light">
+                Reviews
+              </p>
+              <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em]">
+                Client Feedback
+              </h3>
+            </div>
+            <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto">
+              {tech.reviews && tech.reviews.length > 0 ? (
+                tech.reviews.map((review: any) => (
+                  <div key={review.id} className="border border-[#E8E8E8] p-8 sm:p-10 hover:border-[#8B7355] transition-all duration-700">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        {review.client?.avatar && (
+                          <div className="relative w-12 h-12 sm:w-14 sm:h-14">
+                            <Image
+                              src={review.client.avatar}
+                              alt={review.client.username}
+                              fill
+                              className="rounded-full object-cover"
+                              sizes="56px"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-base font-light text-[#1A1A1A] mb-2 tracking-wide">{review.client?.username}</p>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? 'fill-[#8B7355] text-[#8B7355]'
+                                    : 'text-[#E8E8E8]'
+                                }`}
+                                strokeWidth={1.5}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-sm text-[#6B6B6B] font-light tracking-wide">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {review.comment && (
+                      <p className="text-base text-[#6B6B6B] leading-[1.7] font-light tracking-wide mb-6">
+                        {review.comment}
+                      </p>
+                    )}
+                    {review.images && review.images.length > 0 && (
+                      <div className="flex gap-3 flex-wrap">
+                        {review.images.map((img: string, idx: number) => (
+                          <div key={idx} className="relative w-24 h-24 sm:w-28 sm:h-28 cursor-pointer group" onClick={() => window.open(img, '_blank')}>
+                            <Image
+                              src={img}
+                              alt="Review"
+                              fill
+                              className="object-cover transition-transform duration-700 group-hover:scale-105"
+                              sizes="112px"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 text-center">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-8 border border-[#E8E8E8] flex items-center justify-center">
+                    <Star className="w-10 h-10 sm:w-12 sm:h-12 text-[#E8E8E8]" strokeWidth={1} />
+                  </div>
+                  <p className="text-base text-[#6B6B6B] font-light tracking-wide">
+                    No reviews yet
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Location Tab */}
+        {activeTab === 'location' && (
+          <div>
+            <div className="mb-12 sm:mb-16 text-center">
+              <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#8B7355] mb-4 font-light">
+                Location
+              </p>
+              <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-[#1A1A1A] tracking-[-0.01em]">
+                Find Us
+              </h3>
+            </div>
+            <div className="border border-[#E8E8E8] overflow-hidden max-w-5xl mx-auto">
+              <div className="p-8 sm:p-10 bg-[#F8F7F5]">
+                <div className="flex items-center gap-3 mb-3">
+                  <MapPin className="h-6 w-6 text-[#8B7355]" strokeWidth={1.5} />
+                  <h4 className="text-xl sm:text-2xl font-serif font-light text-[#1A1A1A] tracking-tight">
+                    {tech.businessName || tech.user?.username}
+                  </h4>
+                </div>
+                <p className="text-base text-[#6B6B6B] font-light tracking-wide">
+                  {tech.location || 'Location not set'}
+                </p>
+              </div>
+              {tech.location ? (
+                <>
+                  <TechLocationMap
+                    location={tech.location}
+                    businessName={tech.businessName}
+                    className="w-full h-[400px] sm:h-[500px] lg:h-[600px]"
+                  />
+                  <div className="p-8 sm:p-10 grid sm:grid-cols-2 gap-4 sm:gap-5">
+                    <Button
+                      variant="outline"
+                      className="border-[#E8E8E8] hover:border-[#8B7355] hover:bg-transparent text-[#1A1A1A] h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
+                      onClick={() => {
+                        const query = encodeURIComponent(tech.location);
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                      }}
+                    >
+                      <MapPin className="h-5 w-5 mr-2" strokeWidth={1.5} />
+                      Open in Maps
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-[#E8E8E8] hover:border-[#8B7355] hover:bg-transparent text-[#1A1A1A] h-14 text-[11px] tracking-[0.25em] uppercase rounded-none font-light transition-all duration-700"
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition((position) => {
+                            const { latitude, longitude } = position.coords;
+                            const query = encodeURIComponent(tech.location);
+                            window.open(
+                              `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${query}`,
+                              '_blank'
+                            );
+                          });
+                        }
+                      }}
+                    >
+                      <Navigation className="h-5 w-5 mr-2" strokeWidth={1.5} />
+                      Get Directions
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-20 text-center">
+                  <MapPin className="h-12 w-12 mx-auto mb-4 text-[#E8E8E8]" strokeWidth={1} />
+                  <p className="text-base text-[#6B6B6B] font-light tracking-wide">
+                    Location not available
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Navigation */}
+      {isAuthenticated && (
+        <BottomNav onCenterAction={() => router.push('/capture')} centerActionLabel="Create" />
+      )}
+    </div>
+  );
+}

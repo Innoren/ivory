@@ -1,0 +1,5 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "typescript.autoClosingTags": false,
+  "kiroAgent.configureMCP": "Disabled"
+}

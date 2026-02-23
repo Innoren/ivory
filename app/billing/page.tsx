@@ -1,0 +1,486 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BuyCreditsDialog } from '@/components/buy-credits-dialog';
+import { SubscriptionPlans } from '@/components/subscription-plans';
+import { ArrowLeft, Coins, CreditCard, History, Sparkles, Crown, ExternalLink, Shield, Lock } from 'lucide-react';
+import { format } from 'date-fns';
+import { CREDIT_PACKAGES } from '@/lib/stripe-config';
+import { toast } from 'sonner';
+
+interface CreditTransaction {
+  id: number;
+  amount: number;
+  type: string;
+  description: string;
+  balanceAfter: number;
+  createdAt: string;
+}
+
+export default function BillingPage() {
+  const router = useRouter();
+  const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subscriptionTier, setSubscriptionTier] = useState('free');
+  const [subscriptionStatus, setSubscriptionStatus] = useState('inactive');
+  const [credits, setCredits] = useState<number | null>(null);
+  const [userType, setUserType] = useState<'client' | 'tech'>('client');
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  // Check for both Capacitor and native bridge
+  const isNative = Capacitor.isNativePlatform() || (typeof window !== 'undefined' && !!(window as any).NativeBridge);
+
+  useEffect(() => {
+    // Log platform information for debugging
+    console.log('🔵 Billing page loaded');
+    console.log('🔵 Platform:', Capacitor.getPlatform());
+    console.log('🔵 Is native platform:', isNative);
+    console.log('🔵 User agent:', navigator.userAgent);
+    
+    // Check for Stripe redirect parameters
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const success = urlParams.get('success');
+      const canceled = urlParams.get('canceled');
+      
+      if (success === 'true') {
+        setShowSuccessBanner(true);
+        toast.success(
+          <div className="flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Subscription Activated!</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Your Pro subscription is now active
+              </p>
+            </div>
+          </div>,
+          { duration: 5000 }
+        );
+        // Clean up URL
+        window.history.replaceState({}, '', '/billing');
+      } else if (canceled === 'true') {
+        toast.error('Payment canceled. You can try again anytime.');
+        // Clean up URL
+        window.history.replaceState({}, '', '/billing');
+      }
+    }
+    
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Fetch user data for subscription info
+      const userStr = localStorage.getItem('ivoryUser');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setSubscriptionTier(user.subscriptionTier || 'free');
+        setSubscriptionStatus(user.subscriptionStatus || 'inactive');
+        setCredits(user.credits || 0);
+        setUserType(user.userType || 'client');
+      }
+
+      // Fetch current credits balance
+      const balanceResponse = await fetch('/api/credits/balance');
+      if (balanceResponse.ok) {
+        const balanceData = await balanceResponse.json();
+        setCredits(balanceData.credits);
+      }
+
+      // Fetch transactions
+      const response = await fetch('/api/credits/history');
+      if (response.ok) {
+        const data = await response.json();
+        setTransactions(data.transactions);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isBasicPlan = subscriptionTier === 'free';
+  const isPaidPlan = subscriptionTier !== 'free' && subscriptionStatus === 'active';
+
+  return (
+    <div className="min-h-screen bg-white lg:pl-20">
+      {/* Header */}
+      <header className="bg-white border-b border-[#E8E8E8] sticky top-0 z-10 safe-top">
+        <div className="max-w-screen-xl mx-auto px-5 sm:px-6 py-4 sm:py-5 flex items-center gap-4">
+          <button
+            onClick={() => router.push('/home')}
+            className="text-[#1A1A1A] hover:text-[#8B7355] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" strokeWidth={1} />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">
+              BILLING & CREDITS
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-28 sm:pb-32 space-y-8">
+        {/* Success Banner */}
+        {showSuccessBanner && (
+          <div className="border-2 border-green-600 p-6 sm:p-8 bg-green-50 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border-2 border-green-600 flex items-center justify-center flex-shrink-0 bg-white rounded-full">
+                <Crown className="w-6 h-6 text-green-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-serif text-xl sm:text-2xl font-light text-green-900 mb-2 tracking-tight">
+                  You're Now Subscribed! 🎉
+                </h3>
+                <p className="text-sm sm:text-base text-green-800 leading-relaxed font-light mb-4">
+                  Your {subscriptionTier === 'pro' ? 'Pro' : 'Business'} subscription is active. Monthly credits have been added to your account and all premium features are now unlocked!
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <Coins className="h-4 w-4" strokeWidth={1} />
+                    <span>Credits added</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <Sparkles className="h-4 w-4" strokeWidth={1} />
+                    <span>Premium features unlocked</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <CreditCard className="h-4 w-4" strokeWidth={1} />
+                    <span>Buy more credits anytime</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Current Balance */}
+        <div className="border border-[#E8E8E8] p-6 sm:p-8 bg-[#F8F7F5]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div>
+              <p className="text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-2 font-light">Your Balance</p>
+              <h2 className="font-serif text-3xl sm:text-4xl font-light text-[#1A1A1A] tracking-tight mb-2">
+                {credits !== null ? credits : '...'} <span className="text-xl text-[#6B6B6B]">Credits</span>
+              </h2>
+              <p className="text-sm text-[#6B6B6B] font-light">
+                {isPaidPlan ? (
+                  <span className="flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-[#8B7355]" strokeWidth={1} />
+                    {subscriptionTier === 'pro' ? 'Pro' : 'Business'} Plan Active
+                  </span>
+                ) : (
+                  'Basic Plan'
+                )}
+              </p>
+            </div>
+          </div>
+          {isPaidPlan && (
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-sm">
+              <p className="text-sm text-amber-800 font-light">
+                <strong>Important:</strong> Monthly subscription credits reset each billing cycle and don't roll over. Use them before your next renewal date.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Platform Notice for iOS */}
+        {isNative && (
+          <div className="border border-[#8B7355] p-6 sm:p-8 bg-[#F8F7F5]">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border border-[#8B7355] flex items-center justify-center flex-shrink-0 bg-white">
+                <Crown className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+              </div>
+              <div>
+                <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-2 tracking-tight">
+                  iOS In-App Purchase
+                </h3>
+                <p className="text-sm sm:text-base text-[#6B6B6B] leading-relaxed font-light mb-4">
+                  Subscriptions and credits are purchased through Apple's secure payment system. Manage your subscriptions in iOS Settings.
+                </p>
+                <button
+                  onClick={() => {
+                    // Open iOS subscription management
+                    window.open('https://apps.apple.com/account/subscriptions', '_blank');
+                  }}
+                  className="flex items-center gap-2 text-sm text-[#8B7355] hover:text-[#1A1A1A] transition-colors font-light"
+                >
+                  <span>Manage Subscriptions</span>
+                  <ExternalLink className="w-4 w-4" strokeWidth={1} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs Navigation */}
+        <Tabs defaultValue="subscriptions" className="w-full">
+          <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b border-[#E8E8E8] rounded-none">
+            <TabsTrigger 
+              value="subscriptions" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1A1A1A] data-[state=active]:bg-transparent bg-transparent shadow-none text-sm tracking-[0.2em] uppercase font-light px-4 py-4"
+            >
+              Subscriptions
+            </TabsTrigger>
+            {isPaidPlan && (
+              <TabsTrigger 
+                value="credits"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1A1A1A] data-[state=active]:bg-transparent bg-transparent shadow-none text-sm tracking-[0.2em] uppercase font-light px-4 py-4"
+              >
+                Buy Credits
+              </TabsTrigger>
+            )}
+            <TabsTrigger 
+              value="history"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1A1A1A] data-[state=active]:bg-transparent bg-transparent shadow-none text-sm tracking-[0.2em] uppercase font-light px-4 py-4"
+            >
+              History
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions" className="mt-8 space-y-6">
+            <div>
+              <div className="mb-6">
+                <p className="text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-2 font-light">Plans</p>
+                <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight">Subscription Options</h2>
+              </div>
+
+              <SubscriptionPlans 
+                currentTier={subscriptionTier}
+                currentStatus={subscriptionStatus}
+                isNative={isNative}
+                userType={userType}
+              />
+              
+              {/* Message for Basic users */}
+              {isBasicPlan && userType === 'client' && (
+                <div className="border border-[#E8E8E8] p-6 sm:p-8 bg-[#F8F7F5] mt-6">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                      <Sparkles className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-2 tracking-tight">
+                        Unlock Premium Features
+                      </h3>
+                      <p className="text-sm sm:text-base text-[#6B6B6B] leading-relaxed font-light">
+                        Upgrade to Pro to get 20 monthly credits and the ability to purchase additional credits anytime.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Monthly Credits</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">Automatic renewal</p>
+                    </div>
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Buy More Anytime</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">Starting at 5 credits</p>
+                    </div>
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Credits Don't Roll Over</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">Use monthly credits before renewal</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Message for Tech users */}
+              {isBasicPlan && userType === 'tech' && (
+                <div className="border border-[#E8E8E8] p-6 sm:p-8 bg-[#F8F7F5] mt-6">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                      <Crown className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-2 tracking-tight">
+                        Grow Your Business
+                      </h3>
+                      <p className="text-sm sm:text-base text-[#6B6B6B] leading-relaxed font-light">
+                        You have 5 free credits for AI designs and 5 free bookings to start. After 5 bookings, upgrade to Business for unlimited bookings and premium features.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Unlimited Bookings</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">No limits on clients</p>
+                    </div>
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Priority Listing</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">Get discovered first</p>
+                    </div>
+                    <div className="border border-[#E8E8E8] p-4 bg-white">
+                      <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Advanced Analytics</p>
+                      <p className="text-xs text-[#6B6B6B] font-light">Track your growth</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Buy Credits Tab - Only for paid users */}
+          {isPaidPlan && (
+            <TabsContent value="credits" className="mt-8">
+              <div className="mb-6">
+                <p className="text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-2 font-light">Additional</p>
+                <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight mb-2">Credit Packages</h2>
+                <p className="text-sm text-[#6B6B6B] font-light">Purchase extra credits on top of your subscription</p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {CREDIT_PACKAGES.map((pkg) => (
+                  <BuyCreditsDialog key={pkg.id}>
+                    <div className="border border-[#E8E8E8] p-6 bg-white cursor-pointer hover:border-[#8B7355] active:scale-[0.98] transition-all duration-300 group">
+                      <div className="text-center">
+                        <div className="text-4xl font-light text-[#1A1A1A] mb-2 group-hover:text-[#8B7355] transition-colors">
+                          {pkg.credits}
+                        </div>
+                        <div className="text-xs tracking-wider uppercase text-[#6B6B6B] mb-4 font-light">credits</div>
+                        <div className="text-2xl font-light text-[#1A1A1A] mb-2">
+                          ${(pkg.price / 100).toFixed(2)}
+                        </div>
+                        <div className="text-xs text-[#6B6B6B] font-light">
+                          ${(pkg.pricePerCredit / 100).toFixed(2)}/credit
+                        </div>
+                      </div>
+                    </div>
+                  </BuyCreditsDialog>
+                ))}
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Transaction History Tab */}
+          <TabsContent value="history" className="mt-8">
+            <div className="mb-6">
+              <p className="text-xs tracking-[0.3em] uppercase text-[#8B7355] mb-2 font-light">Activity</p>
+              <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#1A1A1A] tracking-tight">Transaction History</h2>
+            </div>
+
+            {loading ? (
+              <div className="border border-[#E8E8E8] p-12 text-center bg-white">
+                <div className="w-12 h-12 border-2 border-[#E8E8E8] border-t-[#8B7355] rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-sm text-[#6B6B6B] font-light">Loading transactions...</p>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="border border-[#E8E8E8] p-12 text-center bg-white">
+                <div className="w-16 h-16 mx-auto mb-6 border border-[#E8E8E8] flex items-center justify-center">
+                  <History className="w-8 h-8 text-[#6B6B6B]" strokeWidth={1} />
+                </div>
+                <p className="text-sm text-[#6B6B6B] font-light">No transactions yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="border border-[#E8E8E8] p-4 sm:p-5 bg-white hover:border-[#8B7355] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-serif text-base font-light text-[#1A1A1A] mb-1 truncate">{transaction.description}</p>
+                        <p className="text-xs text-[#6B6B6B] font-light tracking-wider uppercase">
+                          {format(new Date(transaction.createdAt), 'MMM d, yyyy h:mm a')}
+                        </p>
+                      </div>
+                      <div className="text-right ml-4">
+                        <p
+                          className={`text-xl font-light ${
+                            transaction.amount > 0
+                              ? 'text-green-600'
+                              : 'text-[#1A1A1A]'
+                          }`}
+                        >
+                          {transaction.amount > 0 ? '+' : ''}
+                          {transaction.amount}
+                        </p>
+                        <p className="text-xs text-[#6B6B6B] font-light whitespace-nowrap">
+                          Balance: {transaction.balanceAfter}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Legal Links Section */}
+        <div className="border border-[#E8E8E8] p-6 sm:p-8 bg-white">
+          <div className="text-center">
+            <p className="text-sm text-[#6B6B6B] font-light mb-4">
+              By using our services, you agree to our legal terms
+            </p>
+            <div className="flex items-center justify-center gap-6">
+              <button 
+                onClick={() => router.push('/terms')}
+                className="flex items-center gap-2 text-[#8B7355] hover:text-[#1A1A1A] transition-colors font-light underline decoration-1 underline-offset-4 hover:decoration-2"
+              >
+                <Shield className="w-4 h-4" strokeWidth={1} />
+                <span>Terms of Use</span>
+              </button>
+              <button 
+                onClick={() => router.push('/privacy-policy')}
+                className="flex items-center gap-2 text-[#8B7355] hover:text-[#1A1A1A] transition-colors font-light underline decoration-1 underline-offset-4 hover:decoration-2"
+              >
+                <Lock className="w-4 h-4" strokeWidth={1} />
+                <span>Privacy Policy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="border border-[#E8E8E8] p-6 sm:p-8 bg-[#F8F7F5]">
+          <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] mb-6 tracking-tight">About Credits</h3>
+          <div className="grid sm:grid-cols-2 gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                <Coins className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+              </div>
+              <div>
+                <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">1 Credit per Design</p>
+                <p className="text-sm text-[#6B6B6B] font-light">Each AI generation costs 1 credit</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                <History className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+              </div>
+              <div>
+                <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Purchased Credits Never Expire</p>
+                <p className="text-sm text-[#6B6B6B] font-light">Only subscription credits reset monthly</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                <Sparkles className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+              </div>
+              <div>
+                <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Earn Free Credits</p>
+                <p className="text-sm text-[#6B6B6B] font-light">Refer friends to earn more</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 border border-[#E8E8E8] flex items-center justify-center flex-shrink-0 bg-white">
+                <CreditCard className="w-6 h-6 text-[#8B7355]" strokeWidth={1} />
+              </div>
+              <div>
+                <p className="font-serif text-base font-light text-[#1A1A1A] mb-1">Secure Payments</p>
+                <p className="text-sm text-[#6B6B6B] font-light">Powered by Stripe</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

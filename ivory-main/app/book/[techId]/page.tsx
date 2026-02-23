@@ -1,0 +1,638 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { ElegantCalendar } from '@/components/elegant-calendar';
+import { ArrowLeft, Clock, CheckCircle2, Loader2, Sparkles, MapPin, Star, Info } from 'lucide-react';
+import { BottomNav } from '@/components/bottom-nav';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { isNativeIOS } from '@/lib/native-bridge';
+
+const CONVENIENCE_FEE_PERCENT = 0.15; // 15% service fee
+
+// Native haptic feedback
+const triggerHaptic = (style: 'light' | 'medium' | 'success' = 'light') => {
+  if (typeof window !== 'undefined' && (window as any).webkit?.messageHandlers?.haptics) {
+    (window as any).webkit.messageHandlers.haptics.postMessage({ style })
+  }
+}
+
+export default function BookAppointmentPage() {
+  const router = useRouter();
+  const params = useParams();
+  const techId = params.techId as string;
+
+  const [tech, setTech] = useState<any>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [selectedService, setSelectedService] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [techAvailability, setTechAvailability] = useState<any[]>([]);
+  const [techTimeOff, setTechTimeOff] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    fetchTechDetails();
+    checkUserSession();
+  }, [techId]);
+
+  // Check user session on mount
+  const checkUserSession = async () => {
+    try {
+      const response = await fetch('/api/auth/session');
+      const data = await response.json();
+      if (data.user) {
+        setCurrentUser(data.user);
+        // Also ensure token is in localStorage for API calls
+        if (data.user.token) {
+          localStorage.setItem('token', data.user.token);
+        }
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate && tech) {
+      generateAvailableTimes();
+    }
+  }, [selectedDate, techAvailability, techTimeOff]);
+
+  // Handle returning from authentication
+  useEffect(() => {
+    const pendingBooking = localStorage.getItem('pendingBooking');
+    if (pendingBooking && localStorage.getItem('token')) {
+      try {
+        const booking = JSON.parse(pendingBooking);
+        if (booking.techId === parseInt(techId)) {
+          // Clear the pending booking
+          localStorage.removeItem('pendingBooking');
+          
+          // Auto-fill the form if possible
+          if (booking.serviceId) {
+            setSelectedService(booking.serviceId.toString());
+          }
+          
+          // Show a helpful message
+          setTimeout(() => {
+            alert('Welcome back! Please select your appointment details and continue with booking.');
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error handling pending booking:', error);
+        localStorage.removeItem('pendingBooking');
+      }
+    }
+  }, [techId]);
+
+  const fetchTechDetails = async () => {
+    try {
+      // Tech details are public - no auth required for viewing
+      const response = await fetch(`/api/tech/${techId}`);
+      const data = await response.json();
+      if (response.ok) {
+        setTech(data.tech);
+        setServices(data.tech.services || []);
+        
+        // Fetch availability (also public)
+        const availRes = await fetch(`/api/tech/availability?techProfileId=${techId}`);
+        if (availRes.ok) {
+          const availData = await availRes.json();
+          setTechAvailability(availData.availability || []);
+          setTechTimeOff(availData.timeOff || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching tech:', error);
+    }
+  };
+
+  const generateAvailableTimes = () => {
+    if (!selectedDate) return;
+    
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[selectedDate.getDay()];
+    
+    // Check if date is in time off period
+    const isTimeOff = techTimeOff.some(period => {
+      const start = new Date(period.startDate);
+      const end = new Date(period.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      const checkDate = new Date(selectedDate);
+      checkDate.setHours(12, 0, 0, 0);
+      return checkDate >= start && checkDate <= end;
+    });
+    
+    if (isTimeOff) {
+      setAvailableTimes([]);
+      return;
+    }
+    
+    // Find availability for this day
+    const dayAvailability = techAvailability.find(a => a.dayOfWeek === dayOfWeek && a.isActive);
+    
+    if (!dayAvailability) {
+      // Fall back to default hours if no availability set
+      const times: string[] = [];
+      for (let hour = 9; hour <= 18; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          if (hour === 18 && minute > 0) break;
+          const period = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+          const timeStr = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+          times.push(timeStr);
+        }
+      }
+      setAvailableTimes(times);
+      return;
+    }
+    
+    // Generate times based on tech's availability
+    const times: string[] = [];
+    const [startHour, startMin] = dayAvailability.startTime.split(':').map(Number);
+    const [endHour, endMin] = dayAvailability.endTime.split(':').map(Number);
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        // Skip times before start
+        if (hour === startHour && minute < startMin) continue;
+        // Skip times after end
+        if (hour === endHour && minute > endMin) continue;
+        if (hour > endHour) break;
+        
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+        const timeStr = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+        times.push(timeStr);
+      }
+    }
+    setAvailableTimes(times);
+  };
+
+  // Check if a date is available (not time off and has availability)
+  const isDateAvailable = (date: Date) => {
+    // Check if in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today) return false;
+    
+    // Check if in time off period
+    const isTimeOff = techTimeOff.some(period => {
+      const start = new Date(period.startDate);
+      const end = new Date(period.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      const checkDate = new Date(date);
+      checkDate.setHours(12, 0, 0, 0);
+      return checkDate >= start && checkDate <= end;
+    });
+    
+    if (isTimeOff) return false;
+    
+    // Check if tech works this day
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[date.getDay()];
+    
+    // If no availability set, assume all days available
+    if (techAvailability.length === 0) return true;
+    
+    return techAvailability.some(a => a.dayOfWeek === dayOfWeek && a.isActive);
+  };
+
+  const handleBooking = async () => {
+    if (!selectedService || !selectedDate || !selectedTime) {
+      alert('Please select service, date, and time');
+      return;
+    }
+
+    setLoading(true);
+    triggerHaptic('medium');
+    
+    try {
+      const appointmentDateTime = new Date(selectedDate);
+      const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        const period = timeMatch[3].toUpperCase();
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        appointmentDateTime.setHours(hours, minutes);
+      }
+
+      // Re-check session to ensure we have the latest auth state
+      // This handles cases where the initial session check hasn't completed
+      // or where the user logged in via OAuth in another tab
+      let user = currentUser;
+      if (!user) {
+        try {
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          if (sessionData.user) {
+            user = sessionData.user;
+            setCurrentUser(user);
+            // Store token for API calls
+            if (user.token) {
+              localStorage.setItem('token', user.token);
+            }
+          }
+        } catch (error) {
+          console.error('Session re-check error:', error);
+        }
+      }
+
+      // If still no user after re-check, prompt for login
+      if (!user) {
+        // Store booking details for after login
+        const bookingDetails = {
+          techId: parseInt(techId),
+          serviceId: parseInt(selectedService),
+          appointmentDate: appointmentDateTime.toISOString(),
+          returnUrl: `/book/${techId}`
+        };
+        localStorage.setItem('pendingBooking', JSON.stringify(bookingDetails));
+        
+        // Better user experience - confirm before redirect
+        if (confirm('You need to log in to book an appointment. Would you like to log in now?')) {
+          router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
+        }
+        setLoading(false);
+        return;
+      }
+      
+      const bookingResponse = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for session-based auth
+        body: JSON.stringify({
+          techProfileId: parseInt(techId),
+          serviceId: parseInt(selectedService),
+          appointmentDate: appointmentDateTime.toISOString(),
+        }),
+      });
+
+      const bookingData = await bookingResponse.json();
+      if (!bookingResponse.ok) {
+        alert(bookingData.error || 'Failed to create booking');
+        return;
+      }
+
+      await handleStripePayment(bookingData.booking);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('Failed to create booking');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStripePayment = async (booking: any) => {
+    try {
+      // Re-check session to ensure we have the latest auth state
+      let user = currentUser;
+      if (!user) {
+        try {
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          if (sessionData.user) {
+            user = sessionData.user;
+            setCurrentUser(user);
+            if (user.token) {
+              localStorage.setItem('token', user.token);
+            }
+          }
+        } catch (error) {
+          console.error('Session re-check error:', error);
+        }
+      }
+
+      if (!user) {
+        // Better user experience for payment authentication
+        if (confirm('You need to log in to complete payment. Would you like to log in now?')) {
+          router.push('/auth?redirect=' + encodeURIComponent(`/book/${techId}`));
+        }
+        return;
+      }
+      
+      const response = await fetch('/api/stripe/create-booking-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for session-based auth
+        body: JSON.stringify({ bookingId: booking.id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Failed to create payment session');
+        return;
+      }
+
+      const data = await response.json();
+      triggerHaptic('success');
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('Failed to create booking');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedServiceData = services.find(s => s.id.toString() === selectedService);
+
+  if (!tech) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] bg-[#F8F7F5] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-10 h-10 border-2 border-[#8B7355] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-[11px] tracking-[0.2em] uppercase text-[#6B6B6B] font-light">Loading</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen min-h-[100dvh] bg-[#F8F7F5] pb-40 lg:pb-28">
+      {/* Header - iOS Native Style */}
+      <header className={`bg-white/95 backdrop-blur-xl border-b border-[#E8E8E8]/80 sticky top-0 z-50 ${isNativeIOS() ? 'pt-[60px]' : 'pt-[env(safe-area-inset-top)]'}`}>
+        <div className={`max-w-2xl mx-auto px-4 py-3 ${isNativeIOS() ? 'pt-6' : ''}`}>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                triggerHaptic('light');
+                router.back();
+              }} 
+              className="h-10 w-10 flex items-center justify-center hover:bg-[#F8F7F5] rounded-full active:scale-90 transition-all duration-150"
+            >
+              <ArrowLeft className="h-5 w-5 text-[#8B7355]" strokeWidth={2} />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-semibold text-[15px] text-[#1A1A1A]">Book Appointment</h1>
+              <p className="text-[12px] text-[#6B6B6B] truncate">{tech.businessName || tech.user?.username}</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Tech Info Card */}
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E8E8E8]/50">
+          <div className="flex items-center gap-3">
+            {tech.portfolioImages?.[0] ? (
+              <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
+                <Image
+                  src={tech.portfolioImages[0].imageUrl}
+                  alt={tech.businessName || 'Tech'}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-[#F8F7F5] flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-[#8B7355]" strokeWidth={1.5} />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h2 className="font-medium text-[15px] text-[#1A1A1A] truncate">
+                {tech.businessName || tech.user?.username}
+              </h2>
+              {tech.location && (
+                <div className="flex items-center gap-1 text-[12px] text-[#6B6B6B]">
+                  <MapPin className="w-3 h-3" strokeWidth={2} />
+                  <span className="truncate">{tech.location}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 mt-0.5">
+                <Star className="w-3 h-3 fill-[#8B7355] text-[#8B7355]" />
+                <span className="text-[12px] text-[#1A1A1A] font-medium">{tech.rating || '5.0'}</span>
+                <span className="text-[12px] text-[#6B6B6B]">({tech.totalReviews || 0} reviews)</span>
+              </div>
+            </div>
+            {tech.phoneNumber && (
+              <a 
+                href={`tel:${tech.phoneNumber}`}
+                className="flex items-center justify-center w-10 h-10 bg-[#8B7355] rounded-xl text-white hover:bg-[#1A1A1A] transition-colors duration-200 active:scale-95"
+                onClick={() => triggerHaptic('light')}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-2xl mx-auto px-4 space-y-4">
+        
+        {/* Service Selection */}
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#E8E8E8]/50">
+          <div className="px-4 sm:px-5 py-4 border-b border-[#E8E8E8]/50 bg-gradient-to-r from-[#F8F7F5] to-white">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#8B7355] text-white text-[12px] sm:text-[13px] font-medium flex items-center justify-center shadow-sm">1</div>
+              <span className="text-[14px] sm:text-[15px] font-medium text-[#1A1A1A] tracking-tight">Select Service</span>
+            </div>
+          </div>
+          <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+            {services.map((service) => (
+              <button
+                key={service.id}
+                onClick={() => {
+                  triggerHaptic('light');
+                  setSelectedService(service.id.toString());
+                }}
+                className={`w-full p-4 sm:p-5 rounded-xl sm:rounded-2xl text-left transition-all duration-300 shadow-sm ${
+                  selectedService === service.id.toString()
+                    ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#8B7355]/5 border-2 border-[#8B7355] shadow-md scale-[1.02]'
+                    : 'bg-white hover:bg-[#F8F7F5] border-2 border-[#E8E8E8] hover:border-[#8B7355]/30 hover:shadow-md active:scale-[0.98]'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[15px] sm:text-[16px] font-medium text-[#1A1A1A] mb-1.5 tracking-tight">{service.name}</h3>
+                    {service.description && (
+                      <p className="text-[12px] sm:text-[13px] text-[#6B6B6B] line-clamp-2 leading-relaxed font-light">{service.description}</p>
+                    )}
+                    <div className="flex items-center gap-1.5 mt-2 text-[11px] sm:text-[12px] text-[#8B7355]">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={1.5} />
+                      <span className="font-medium">{service.duration} minutes</span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className={`px-3 py-1.5 rounded-lg ${
+                      selectedService === service.id.toString()
+                        ? 'bg-[#8B7355] text-white'
+                        : 'bg-[#F8F7F5] text-[#1A1A1A]'
+                    }`}>
+                      <p className="text-[17px] sm:text-[18px] font-semibold">${service.price}</p>
+                    </div>
+                  </div>
+                </div>
+                {selectedService === service.id.toString() && (
+                  <div className="mt-3 pt-3 border-t border-[#8B7355]/20 flex items-center gap-2 text-[#8B7355]">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
+                    <span className="text-[12px] sm:text-[13px] font-medium tracking-wide">Selected</span>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Date & Time Selection */}
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#E8E8E8]/50">
+          <div className="px-4 py-3 border-b border-[#E8E8E8]/50">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full text-[11px] font-medium flex items-center justify-center ${
+                selectedService ? 'bg-[#8B7355] text-white' : 'bg-[#E8E8E8] text-[#6B6B6B]'
+              }`}>2</div>
+              <span className="text-[13px] font-medium text-[#1A1A1A]">Date & Time</span>
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="flex justify-center mb-4">
+              <ElegantCalendar
+                selected={selectedDate}
+                onSelect={(date) => {
+                  triggerHaptic('light');
+                  setSelectedDate(date);
+                  setSelectedTime('');
+                }}
+                disabled={(date) => !isDateAvailable(date)}
+                className="border-0 shadow-none p-0"
+              />
+            </div>
+
+            {selectedDate && (
+              <div className="pt-6 border-t border-[#E8E8E8]/30">
+                <p className="text-[11px] tracking-[0.15em] uppercase text-[#6B6B6B] mb-4 font-light">Available Times</p>
+                {availableTimes.length === 0 ? (
+                  <div className="text-center py-8 bg-gradient-to-br from-[#F8F7F5] to-[#F0F0F0] rounded-2xl border border-[#E8E8E8]/30">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white shadow-sm flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[#8B7355]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-[13px] text-[#6B6B6B] font-light">No available times on this date</p>
+                    <p className="text-[11px] text-[#8E8E93] mt-1 font-light">Please select another date</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {availableTimes.map((time) => (
+                      <button
+                        key={time}
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setSelectedTime(time);
+                        }}
+                        className={cn(
+                          "py-3 px-2 text-[12px] font-light rounded-xl transition-all duration-300 relative group",
+                          selectedTime === time
+                            ? "bg-[#8B7355] text-white shadow-lg shadow-[#8B7355]/20 scale-105"
+                            : "bg-[#F8F7F5] text-[#1A1A1A] hover:bg-[#E8E8E8] hover:scale-105 hover:shadow-md hover:shadow-[#8B7355]/10",
+                          "active:scale-95"
+                        )}
+                      >
+                        <span className={cn(
+                          "transition-all duration-300",
+                          selectedTime === time && "font-medium"
+                        )}>
+                          {time}
+                        </span>
+                        {selectedTime !== time && (
+                          <div className="absolute inset-0 rounded-xl ring-1 ring-[#8B7355]/0 group-hover:ring-[#8B7355]/20 transition-all duration-300" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Fixed Bottom - Booking Summary */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E8E8E8] pb-[env(safe-area-inset-bottom)]">
+        <div className="max-w-2xl mx-auto px-4 py-3">
+          {/* Price Breakdown */}
+          {selectedServiceData && (
+            <div className="mb-3 pb-3 border-b border-[#E8E8E8]/50">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[13px] font-medium text-[#1A1A1A]">{selectedServiceData.name}</p>
+                <p className="text-[13px] text-[#1A1A1A]">${parseFloat(selectedServiceData.price).toFixed(2)}</p>
+              </div>
+              
+              {/* Fee breakdown */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[12px] text-[#6B6B6B]">Service fee (15%)</p>
+                  <div className="group relative">
+                    <Info className="w-3.5 h-3.5 text-[#8B7355] cursor-help" strokeWidth={2} />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                      This fee helps us maintain the platform, provide customer support, and ensure secure payments.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1A1A1A]" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[12px] text-[#6B6B6B]">
+                  ${(parseFloat(selectedServiceData.price) * CONVENIENCE_FEE_PERCENT).toFixed(2)}
+                </p>
+              </div>
+              
+              {/* Total */}
+              <div className="flex items-center justify-between pt-2 border-t border-dashed border-[#E8E8E8]">
+                <p className="text-[14px] font-semibold text-[#1A1A1A]">Total</p>
+                <p className="text-[18px] font-semibold text-[#1A1A1A]">
+                  ${(parseFloat(selectedServiceData.price) * (1 + CONVENIENCE_FEE_PERCENT)).toFixed(2)}
+                </p>
+              </div>
+              
+              {/* Date/Time info */}
+              <div className="flex items-center gap-2 text-[11px] text-[#6B6B6B] mt-2">
+                {selectedDate && (
+                  <span>{selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                )}
+                {selectedTime && (
+                  <>
+                    <span>•</span>
+                    <span>{selectedTime}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <Button
+            onClick={handleBooking}
+            disabled={loading || !selectedService || !selectedDate || !selectedTime}
+            className="w-full bg-[#1A1A1A] hover:bg-[#8B7355] text-white h-12 text-[13px] font-medium rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              'Continue to Payment'
+            )}
+          </Button>
+          
+          <p className="text-[10px] text-center text-[#6B6B6B] mt-2">
+            Secure payment via Stripe • Booking confirmed after payment
+          </p>
+        </div>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}

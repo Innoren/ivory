@@ -1,0 +1,774 @@
+import { pgTable, serial, text, timestamp, varchar, boolean, integer, decimal, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+// Enums
+export const userTypeEnum = pgEnum('user_type', ['client', 'tech']);
+export const requestStatusEnum = pgEnum('request_status', ['pending', 'approved', 'modified', 'rejected', 'completed']);
+export const authProviderEnum = pgEnum('auth_provider', ['email', 'google', 'apple']);
+export const bookingStatusEnum = pgEnum('booking_status', ['pending', 'confirmed', 'cancelled', 'completed', 'no_show']);
+export const dayOfWeekEnum = pgEnum('day_of_week', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+
+// Users table - both clients and nail techs
+export const users: any = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: varchar('username', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  authProvider: authProviderEnum('auth_provider').default('email').notNull(),
+  userType: userTypeEnum('user_type').notNull(),
+  avatar: text('avatar'),
+  credits: integer('credits').default(2).notNull(), // Free credits on signup
+  referralCode: varchar('referral_code', { length: 50 }).unique(), // User's unique referral code
+  referredBy: integer('referred_by').references((): any => users.id), // Who referred this user
+  // Personal info
+  dateOfBirth: timestamp('date_of_birth'), // DOB for age verification
+  phoneNumber: varchar('phone_number', { length: 20 }), // Personal phone number (E.164 format)
+  phoneVerified: boolean('phone_verified').default(false), // Whether phone is verified via Twilio
+  phoneVerificationCode: varchar('phone_verification_code', { length: 6 }), // OTP code
+  phoneVerificationExpires: timestamp('phone_verification_expires'), // When OTP expires
+  // Subscription fields
+  subscriptionTier: varchar('subscription_tier', { length: 50 }).default('free'), // free, pro, business
+  subscriptionStatus: varchar('subscription_status', { length: 50 }).default('inactive'), // active, canceled, past_due, inactive
+  stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
+  stripeSubscriptionId: varchar('stripe_subscription_id', { length: 255 }),
+  subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
+  subscriptionProvider: varchar('subscription_provider', { length: 50 }).default('stripe'), // stripe, apple
+  // Auto-recharge settings
+  autoRechargeEnabled: boolean('auto_recharge_enabled').default(false),
+  autoRechargeAmount: integer('auto_recharge_amount').default(5), // 5 or 10 credits
+  resetPasswordToken: varchar('reset_password_token', { length: 255 }),
+  resetPasswordExpires: timestamp('reset_password_expires'),
+  // Permissions
+  cameraPermissionGranted: boolean('camera_permission_granted').default(false),
+  photosPermissionGranted: boolean('photos_permission_granted').default(false),
+  notificationsPermissionGranted: boolean('notifications_permission_granted').default(false),
+  permissionsRequestedAt: timestamp('permissions_requested_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Nail tech profiles - extended info for techs
+export const techProfiles = pgTable('tech_profiles', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull().unique(),
+  businessName: varchar('business_name', { length: 255 }),
+  location: varchar('location', { length: 255 }),
+  bio: text('bio'),
+  rating: decimal('rating', { precision: 3, scale: 2 }).default('0'),
+  totalReviews: integer('total_reviews').default(0),
+  phoneNumber: varchar('phone_number', { length: 50 }),
+  website: varchar('website', { length: 255 }),
+  instagramHandle: varchar('instagram_handle', { length: 100 }),
+  tiktokHandle: varchar('tiktok_handle', { length: 100 }),
+  facebookHandle: varchar('facebook_handle', { length: 100 }),
+  otherSocialLinks: jsonb('other_social_links'), // Array of {platform: string, handle: string, url: string}
+  isVerified: boolean('is_verified').default(false),
+  // No-show fee settings (optional)
+  noShowFeeEnabled: boolean('no_show_fee_enabled').default(false),
+  noShowFeePercent: integer('no_show_fee_percent').default(50), // Percentage of service price charged for no-shows
+  cancellationWindowHours: integer('cancellation_window_hours').default(24), // Hours before appointment for free cancellation
+  // Stripe Connect for payouts
+  stripeConnectAccountId: varchar('stripe_connect_account_id', { length: 255 }),
+  stripeAccountStatus: varchar('stripe_account_status', { length: 50 }).default('not_setup'), // not_setup, pending, active, restricted
+  payoutsEnabled: boolean('payouts_enabled').default(false),
+  chargesEnabled: boolean('charges_enabled').default(false),
+  // Tech Referral Program - earn 5% of referred tech's bookings
+  techReferralCode: varchar('tech_referral_code', { length: 50 }).unique(),
+  referredByTechId: integer('referred_by_tech_id').references((): any => techProfiles.id),
+  totalReferralEarnings: decimal('total_referral_earnings', { precision: 10, scale: 2 }).default('0'),
+  pendingReferralEarnings: decimal('pending_referral_earnings', { precision: 10, scale: 2 }).default('0'),
+  // Custom website URL for specific users (overrides website builder)
+  customWebsiteUrl: varchar('custom_website_url', { length: 500 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Services offered by nail techs
+export const services = pgTable('services', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  price: decimal('price', { precision: 10, scale: 2 }),
+  duration: integer('duration'), // in minutes
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Tech availability schedule
+export const techAvailability = pgTable('tech_availability', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  dayOfWeek: dayOfWeekEnum('day_of_week').notNull(),
+  startTime: varchar('start_time', { length: 5 }).notNull(), // HH:MM format
+  endTime: varchar('end_time', { length: 5 }).notNull(), // HH:MM format
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Tech time off / blocked dates
+export const techTimeOff = pgTable('tech_time_off', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date').notNull(),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Bookings/Appointments
+export const bookings = pgTable('bookings', {
+  id: serial('id').primaryKey(),
+  clientId: integer('client_id').references(() => users.id), // Made nullable for guest bookings
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  serviceId: integer('service_id').references(() => services.id).notNull(),
+  lookId: integer('look_id').references(() => looks.id), // Design they want
+  appointmentDate: timestamp('appointment_date').notNull(),
+  duration: integer('duration').notNull(), // in minutes
+  status: bookingStatusEnum('status').default('pending').notNull(),
+  clientNotes: text('client_notes'),
+  techNotes: text('tech_notes'),
+  servicePrice: decimal('service_price', { precision: 10, scale: 2 }).notNull(), // Original service price
+  serviceFee: decimal('service_fee', { precision: 10, scale: 2 }).notNull(), // 15% platform fee
+  totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(), // servicePrice + serviceFee
+  paymentStatus: varchar('payment_status', { length: 50 }).default('pending'), // pending, paid, refunded
+  stripePaymentIntentId: varchar('stripe_payment_intent_id', { length: 255 }),
+  stripeCheckoutSessionId: varchar('stripe_checkout_session_id', { length: 255 }),
+  paidAt: timestamp('paid_at'),
+  cancellationReason: text('cancellation_reason'),
+  cancelledBy: integer('cancelled_by').references(() => users.id),
+  cancelledAt: timestamp('cancelled_at'),
+  refundedAt: timestamp('refunded_at'),
+  refundAmount: decimal('refund_amount', { precision: 10, scale: 2 }),
+  // No-show fee tracking
+  noShowFeeCharged: boolean('no_show_fee_charged').default(false),
+  noShowFeeAmount: decimal('no_show_fee_amount', { precision: 10, scale: 2 }),
+  // Tech referral tracking - 5% of service price goes to referrer
+  referrerTechId: integer('referrer_tech_id').references(() => techProfiles.id),
+  referralFee: decimal('referral_fee', { precision: 10, scale: 2 }).default('0'),
+  // Guest booking fields for V0 website bookings
+  guestEmail: varchar('guest_email', { length: 255 }),
+  guestPhone: varchar('guest_phone', { length: 50 }),
+  guestName: varchar('guest_name', { length: 255 }),
+  // Manual appointment invite fields
+  inviteToken: varchar('invite_token', { length: 100 }).unique(),
+  inviteExpiresAt: timestamp('invite_expires_at'),
+  invitedClientEmail: varchar('invited_client_email', { length: 255 }),
+  invitedClientName: varchar('invited_client_name', { length: 255 }),
+  isManualBooking: boolean('is_manual_booking').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// AI-generated design breakdowns for nail techs
+export const designBreakdowns = pgTable('design_breakdowns', {
+  id: serial('id').primaryKey(),
+  lookId: integer('look_id').references(() => looks.id).notNull(),
+  bookingId: integer('booking_id').references(() => bookings.id),
+  generatedFor: integer('generated_for').references(() => users.id).notNull(), // Tech who requested it
+  breakdown: jsonb('breakdown').notNull(), // Structured breakdown with steps, products, techniques
+  rawText: text('raw_text').notNull(), // Full AI-generated text
+  difficulty: varchar('difficulty', { length: 50 }), // beginner, intermediate, advanced
+  estimatedTime: integer('estimated_time'), // in minutes
+  productsNeeded: jsonb('products_needed'), // Array of products/tools
+  techniques: jsonb('techniques'), // Array of techniques used
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Nail design looks created by users
+export const looks = pgTable('looks', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'), // Keep this to preserve existing data
+  imageUrl: text('image_url').notNull(),
+  originalImageUrl: text('original_image_url'), // original hand photo
+  aiPrompt: text('ai_prompt'), // AI generation prompt if used
+  nailPositions: jsonb('nail_positions'), // coordinates and colors for each nail
+  designMetadata: jsonb('design_metadata'), // All capture page settings for remix/edit
+  aiAnalysis: jsonb('ai_analysis'), // Cached AI analysis of the design
+  isPublic: boolean('is_public').default(false),
+  shareToken: varchar('share_token', { length: 100 }).unique(),
+  allowCollaborativeEdit: boolean('allow_collaborative_edit').default(false),
+  viewCount: integer('view_count').default(0),
+  likeCount: integer('like_count').default(0).notNull(),
+  dislikeCount: integer('dislike_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Likes for designs
+export const likes = pgTable('likes', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  lookId: integer('look_id').references(() => looks.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Dislikes for designs
+export const dislikes = pgTable('dislikes', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  lookId: integer('look_id').references(() => looks.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Design requests sent from clients to techs
+export const designRequests = pgTable('design_requests', {
+  id: serial('id').primaryKey(),
+  lookId: integer('look_id').references(() => looks.id),
+  savedDesignId: integer('saved_design_id'), // References savedDesigns.id
+  imageUrl: text('image_url'),
+  clientId: integer('client_id').references(() => users.id).notNull(),
+  techId: integer('tech_id').references(() => users.id).notNull(),
+  status: requestStatusEnum('status').default('pending').notNull(),
+  clientMessage: text('client_message'),
+  techResponse: text('tech_response'),
+  estimatedPrice: decimal('estimated_price', { precision: 10, scale: 2 }),
+  appointmentDate: timestamp('appointment_date'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Tech portfolio/gallery images
+export const portfolioImages = pgTable('portfolio_images', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  imageUrl: text('image_url').notNull(),
+  caption: text('caption'),
+  orderIndex: integer('order_index').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Color palettes (predefined and custom)
+export const colorPalettes = pgTable('color_palettes', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  category: varchar('category', { length: 100 }), // classic, seasonal, branded
+  colors: jsonb('colors').notNull(), // array of hex colors
+  brandName: varchar('brand_name', { length: 255 }),
+  isPublic: boolean('is_public').default(true),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// AI generated design variations
+export const aiGenerations = pgTable('ai_generations', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  prompt: text('prompt').notNull(),
+  generatedImages: jsonb('generated_images').notNull(), // array of image URLs
+  selectedImageUrl: text('selected_image_url'),
+  lookId: integer('look_id').references(() => looks.id), // if user saved one
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Favorites/saved looks
+export const favorites = pgTable('favorites', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  lookId: integer('look_id').references(() => looks.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Reviews for nail techs
+export const reviews = pgTable('reviews', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull(),
+  clientId: integer('client_id').references(() => users.id).notNull(),
+  designRequestId: integer('design_request_id').references(() => designRequests.id),
+  rating: integer('rating').notNull(), // 1-5
+  comment: text('comment'),
+  images: jsonb('images'), // array of image URLs
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Sessions for persistent login
+export const sessions = pgTable('sessions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  token: varchar('token', { length: 500 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Notifications
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  type: varchar('type', { length: 100 }).notNull(), // request_received, request_approved, etc.
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message'),
+  relatedId: integer('related_id'), // ID of related entity (request, look, etc.)
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Referrals tracking
+export const referrals = pgTable('referrals', {
+  id: serial('id').primaryKey(),
+  referrerId: integer('referrer_id').references(() => users.id).notNull(), // User who shared
+  referredUserId: integer('referred_user_id').references(() => users.id).notNull(), // New user who signed up
+  creditAwarded: boolean('credit_awarded').default(false), // Whether referrer got credit
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Credit transactions log
+export const creditTransactions = pgTable('credit_transactions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  amount: integer('amount').notNull(), // Positive for credits added, negative for used
+  type: varchar('type', { length: 100 }).notNull(), // signup_bonus, referral_reward, design_generation, etc.
+  description: text('description'),
+  relatedId: integer('related_id'), // ID of related entity (referral, design, etc.)
+  balanceAfter: integer('balance_after').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Content moderation - flagged content
+export const contentFlags = pgTable('content_flags', {
+  id: serial('id').primaryKey(),
+  reporterId: integer('reporter_id').references(() => users.id).notNull(),
+  contentType: varchar('content_type', { length: 50 }).notNull(), // 'look', 'review', 'profile'
+  contentId: integer('content_id').notNull(), // ID of the flagged content
+  contentOwnerId: integer('content_owner_id').references(() => users.id).notNull(),
+  reason: varchar('reason', { length: 100 }).notNull(), // 'inappropriate', 'spam', 'harassment', 'other'
+  description: text('description'),
+  status: varchar('status', { length: 50 }).default('pending').notNull(), // 'pending', 'reviewed', 'action_taken', 'dismissed'
+  reviewedBy: integer('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  actionTaken: text('action_taken'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Blocked users
+export const blockedUsers = pgTable('blocked_users', {
+  id: serial('id').primaryKey(),
+  blockerId: integer('blocker_id').references(() => users.id).notNull(), // User who blocked
+  blockedId: integer('blocked_id').references(() => users.id).notNull(), // User who is blocked
+  reason: varchar('reason', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ one, many }) => ({
+  techProfile: one(techProfiles, {
+    fields: [users.id],
+    references: [techProfiles.userId],
+  }),
+  looks: many(looks),
+  sentRequests: many(designRequests, { relationName: 'clientRequests' }),
+  receivedRequests: many(designRequests, { relationName: 'techRequests' }),
+  favorites: many(favorites),
+  reviews: many(reviews),
+  notifications: many(notifications),
+  aiGenerations: many(aiGenerations),
+  referralsMade: many(referrals, { relationName: 'referrer' }),
+  creditTransactions: many(creditTransactions),
+  sessions: many(sessions),
+  referrer: one(users, {
+    fields: [users.referredBy],
+    references: [users.id],
+  }),
+}));
+
+export const portfolioImagesRelations = relations(portfolioImages, ({ one }) => ({
+  techProfile: one(techProfiles, {
+    fields: [portfolioImages.techProfileId],
+    references: [techProfiles.id],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  techProfile: one(techProfiles, {
+    fields: [reviews.techProfileId],
+    references: [techProfiles.id],
+  }),
+  client: one(users, {
+    fields: [reviews.clientId],
+    references: [users.id],
+  }),
+  designRequest: one(designRequests, {
+    fields: [reviews.designRequestId],
+    references: [designRequests.id],
+  }),
+}));
+
+export const techProfilesRelations = relations(techProfiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [techProfiles.userId],
+    references: [users.id],
+  }),
+  services: many(services),
+  portfolioImages: many(portfolioImages),
+  reviews: many(reviews),
+  availability: many(techAvailability),
+  timeOff: many(techTimeOff),
+  bookings: many(bookings),
+}));
+
+export const servicesRelations = relations(services, ({ one, many }) => ({
+  techProfile: one(techProfiles, {
+    fields: [services.techProfileId],
+    references: [techProfiles.id],
+  }),
+  bookings: many(bookings),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one, many }) => ({
+  client: one(users, {
+    fields: [bookings.clientId],
+    references: [users.id],
+  }),
+  techProfile: one(techProfiles, {
+    fields: [bookings.techProfileId],
+    references: [techProfiles.id],
+  }),
+  service: one(services, {
+    fields: [bookings.serviceId],
+    references: [services.id],
+  }),
+  look: one(looks, {
+    fields: [bookings.lookId],
+    references: [looks.id],
+  }),
+  designBreakdowns: many(designBreakdowns),
+  messages: many(bookingMessages),
+}));
+
+export const designBreakdownsRelations = relations(designBreakdowns, ({ one }) => ({
+  look: one(looks, {
+    fields: [designBreakdowns.lookId],
+    references: [looks.id],
+  }),
+  booking: one(bookings, {
+    fields: [designBreakdowns.bookingId],
+    references: [bookings.id],
+  }),
+  generatedForUser: one(users, {
+    fields: [designBreakdowns.generatedFor],
+    references: [users.id],
+  }),
+}));
+
+export const looksRelations = relations(looks, ({ one, many }) => ({
+  user: one(users, {
+    fields: [looks.userId],
+    references: [users.id],
+  }),
+  designRequests: many(designRequests),
+  favorites: many(favorites),
+  likes: many(likes),
+  dislikes: many(dislikes),
+}));
+
+export const likesRelations = relations(likes, ({ one }) => ({
+  user: one(users, {
+    fields: [likes.userId],
+    references: [users.id],
+  }),
+  look: one(looks, {
+    fields: [likes.lookId],
+    references: [looks.id],
+  }),
+}));
+
+export const dislikesRelations = relations(dislikes, ({ one }) => ({
+  user: one(users, {
+    fields: [dislikes.userId],
+    references: [users.id],
+  }),
+  look: one(looks, {
+    fields: [dislikes.lookId],
+    references: [looks.id],
+  }),
+}));
+
+export const designRequestsRelations = relations(designRequests, ({ one }) => ({
+  look: one(looks, {
+    fields: [designRequests.lookId],
+    references: [looks.id],
+  }),
+  client: one(users, {
+    fields: [designRequests.clientId],
+    references: [users.id],
+  }),
+  tech: one(users, {
+    fields: [designRequests.techId],
+    references: [users.id],
+  }),
+  review: one(reviews, {
+    fields: [designRequests.id],
+    references: [reviews.designRequestId],
+  }),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+  }),
+  referredUser: one(users, {
+    fields: [referrals.referredUserId],
+    references: [users.id],
+  }),
+}));
+
+export const creditTransactionsRelations = relations(creditTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [creditTransactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const contentFlagsRelations = relations(contentFlags, ({ one }) => ({
+  reporter: one(users, {
+    fields: [contentFlags.reporterId],
+    references: [users.id],
+  }),
+  contentOwner: one(users, {
+    fields: [contentFlags.contentOwnerId],
+    references: [users.id],
+  }),
+}));
+
+export const blockedUsersRelations = relations(blockedUsers, ({ one }) => ({
+  blocker: one(users, {
+    fields: [blockedUsers.blockerId],
+    references: [users.id],
+  }),
+  blocked: one(users, {
+    fields: [blockedUsers.blockedId],
+    references: [users.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Generation jobs for background design generation
+export const generationJobs = pgTable('generation_jobs', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  status: varchar('status', { length: 50 }).default('pending').notNull(), // pending, processing, completed, failed
+  prompt: text('prompt').notNull(),
+  originalImage: text('original_image').notNull(),
+  selectedDesignImages: jsonb('selected_design_images'), // JSON array
+  drawingImageUrl: text('drawing_image_url'),
+  influenceWeights: jsonb('influence_weights'), // JSON object
+  designSettings: jsonb('design_settings'), // JSON object
+  resultImages: jsonb('result_images'), // JSON array of generated image URLs
+  errorMessage: text('error_message'),
+  creditsDeducted: boolean('credits_deducted').default(false),
+  autoSaved: boolean('auto_saved').default(false), // Whether results were auto-saved to collection
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const generationJobsRelations = relations(generationJobs, ({ one }) => ({
+  user: one(users, {
+    fields: [generationJobs.userId],
+    references: [users.id],
+  }),
+}));
+
+// Collections for organizing saved designs
+export const collections = pgTable('collections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  isDefault: boolean('is_default').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Saved designs from uploads or share extension
+export const savedDesigns = pgTable('saved_designs', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  collectionId: integer('collection_id').references(() => collections.id),
+  imageUrl: text('image_url').notNull(),
+  title: varchar('title', { length: 255 }),
+  sourceUrl: text('source_url'), // Original source (TikTok, IG, Pinterest, etc.)
+  sourceType: varchar('source_type', { length: 50 }), // 'upload', 'share_extension', 'web'
+  notes: text('notes'),
+  tags: jsonb('tags'), // Array of tags for organization
+  aiAnalysis: jsonb('ai_analysis'), // Cached AI analysis of the design
+  isFavorite: boolean('is_favorite').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
+  user: one(users, {
+    fields: [collections.userId],
+    references: [users.id],
+  }),
+  savedDesigns: many(savedDesigns),
+}));
+
+export const savedDesignsRelations = relations(savedDesigns, ({ one }) => ({
+  user: one(users, {
+    fields: [savedDesigns.userId],
+    references: [users.id],
+  }),
+  collection: one(collections, {
+    fields: [savedDesigns.collectionId],
+    references: [collections.id],
+  }),
+}));
+
+// Messages for design request conversations
+export const designRequestMessages = pgTable('design_request_messages', {
+  id: serial('id').primaryKey(),
+  designRequestId: integer('design_request_id').references(() => designRequests.id).notNull(),
+  senderId: integer('sender_id').references(() => users.id).notNull(),
+  senderType: varchar('sender_type', { length: 20 }).notNull(), // 'client' or 'tech'
+  messageType: varchar('message_type', { length: 20 }).default('text').notNull(), // 'text', 'image', 'file', 'design'
+  content: text('content').notNull(),
+  fileName: varchar('file_name', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const designRequestMessagesRelations = relations(designRequestMessages, ({ one }) => ({
+  designRequest: one(designRequests, {
+    fields: [designRequestMessages.designRequestId],
+    references: [designRequests.id],
+  }),
+  sender: one(users, {
+    fields: [designRequestMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
+// Messages for booking conversations between client and tech
+export const bookingMessages = pgTable('booking_messages', {
+  id: serial('id').primaryKey(),
+  bookingId: integer('booking_id').references(() => bookings.id).notNull(),
+  senderId: integer('sender_id').references(() => users.id).notNull(),
+  senderType: varchar('sender_type', { length: 20 }).notNull(), // 'client' or 'tech'
+  messageType: varchar('message_type', { length: 20 }).default('text').notNull(), // 'text', 'image', 'file'
+  content: text('content').notNull(),
+  fileName: varchar('file_name', { length: 255 }),
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const bookingMessagesRelations = relations(bookingMessages, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [bookingMessages.bookingId],
+    references: [bookings.id],
+  }),
+  sender: one(users, {
+    fields: [bookingMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
+// Tech Referral Earnings - tracks 5% commission from referred tech bookings
+export const techReferralEarnings = pgTable('tech_referral_earnings', {
+  id: serial('id').primaryKey(),
+  referrerTechId: integer('referrer_tech_id').references(() => techProfiles.id).notNull(),
+  referredTechId: integer('referred_tech_id').references(() => techProfiles.id).notNull(),
+  bookingId: integer('booking_id').references(() => bookings.id).notNull(),
+  bookingTotal: decimal('booking_total', { precision: 10, scale: 2 }).notNull(),
+  referralAmount: decimal('referral_amount', { precision: 10, scale: 2 }).notNull(), // 5% of service price
+  status: varchar('status', { length: 50 }).default('pending').notNull(), // pending, paid, cancelled
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const techReferralEarningsRelations = relations(techReferralEarnings, ({ one }) => ({
+  referrerTech: one(techProfiles, {
+    fields: [techReferralEarnings.referrerTechId],
+    references: [techProfiles.id],
+    relationName: 'referrerEarnings',
+  }),
+  referredTech: one(techProfiles, {
+    fields: [techReferralEarnings.referredTechId],
+    references: [techProfiles.id],
+    relationName: 'referredEarnings',
+  }),
+  booking: one(bookings, {
+    fields: [techReferralEarnings.bookingId],
+    references: [bookings.id],
+  }),
+}));
+
+
+// Tech Websites - Main website configuration for subdomain sites
+export const techWebsites = pgTable('tech_websites', {
+  id: serial('id').primaryKey(),
+  techProfileId: integer('tech_profile_id').references(() => techProfiles.id).notNull().unique(),
+  subdomain: varchar('subdomain', { length: 100 }).notNull().unique(),
+  isPublished: boolean('is_published').default(true),
+  primaryColor: varchar('primary_color', { length: 7 }).default('#1A1A1A'),
+  secondaryColor: varchar('secondary_color', { length: 7 }).default('#8B7355'),
+  accentColor: varchar('accent_color', { length: 7 }).default('#F5F5F5'),
+  fontFamily: varchar('font_family', { length: 100 }).default('Inter'),
+  customCss: text('custom_css'),
+  seoTitle: varchar('seo_title', { length: 255 }),
+  seoDescription: text('seo_description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Website Sections - Modular page sections
+export const websiteSections = pgTable('website_sections', {
+  id: serial('id').primaryKey(),
+  websiteId: integer('website_id').references(() => techWebsites.id).notNull(),
+  sectionType: varchar('section_type', { length: 50 }).notNull(), // hero, about, services, gallery, reviews, booking, contact, social, faq, custom
+  displayOrder: integer('display_order').notNull().default(0),
+  isVisible: boolean('is_visible').default(true),
+  settings: jsonb('settings').default({}),
+  title: varchar('title', { length: 255 }),
+  subtitle: text('subtitle'),
+  content: text('content'),
+  backgroundImage: text('background_image'),
+  backgroundColor: varchar('background_color', { length: 7 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Website Chat History - AI chat messages for website customization
+export const websiteChatHistory = pgTable('website_chat_history', {
+  id: serial('id').primaryKey(),
+  websiteId: integer('website_id').references(() => techWebsites.id).notNull(),
+  role: varchar('role', { length: 20 }).notNull(), // 'user' or 'assistant'
+  content: text('content').notNull(),
+  changesMade: jsonb('changes_made'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Relations for tech websites
+export const techWebsitesRelations = relations(techWebsites, ({ one, many }) => ({
+  techProfile: one(techProfiles, {
+    fields: [techWebsites.techProfileId],
+    references: [techProfiles.id],
+  }),
+  sections: many(websiteSections),
+  chatHistory: many(websiteChatHistory),
+}));
+
+export const websiteSectionsRelations = relations(websiteSections, ({ one }) => ({
+  website: one(techWebsites, {
+    fields: [websiteSections.websiteId],
+    references: [techWebsites.id],
+  }),
+}));
+
+export const websiteChatHistoryRelations = relations(websiteChatHistory, ({ one }) => ({
+  website: one(techWebsites, {
+    fields: [websiteChatHistory.websiteId],
+    references: [techWebsites.id],
+  }),
+}));

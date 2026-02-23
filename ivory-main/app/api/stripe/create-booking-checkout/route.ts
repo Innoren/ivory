@@ -1,0 +1,208 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { db } from '@/db';
+import { bookings, services, techProfiles, sessions, techReferralEarnings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { verifyToken } from '@/lib/auth';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-11-17.clover',
+});
+
+const SERVICE_FEE_PERCENTAGE = 0.15; // 15% total service fee
+const REFERRAL_FEE_PERCENTAGE = 0.05; // 5% goes to referrer (from the 15%)
+
+export async function POST(request: NextRequest) {
+  try {
+    // Try to get token from Authorization header or cookie
+    let token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      token = request.cookies.get('session')?.value;
+    }
+    
+    if (!token) {
+      console.error('No token provided in request');
+      return NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 });
+    }
+
+    // First try to verify as JWT token (for localStorage auth)
+    let userId: number | null = null;
+    const jwtPayload = await verifyToken(token);
+    if (jwtPayload) {
+      userId = jwtPayload.userId;
+    } else {
+      // Fallback to session lookup in database
+      const session = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, token),
+        with: { user: true },
+      });
+
+      if (!session || new Date(session.expiresAt) < new Date()) {
+        console.error('Invalid or expired session token');
+        return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
+      }
+      userId = session.userId;
+    }
+
+    if (!userId) {
+      console.error('Could not extract userId from token');
+      return NextResponse.json({ error: 'Invalid session - no user ID' }, { status: 401 });
+    }
+
+    // Get user data
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, userId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { bookingId } = body;
+
+    if (!bookingId) {
+      return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
+    }
+
+    // Get booking details
+    const booking = await db.query.bookings.findFirst({
+      where: eq(bookings.id, bookingId),
+      with: {
+        service: true,
+        techProfile: {
+          with: {
+            user: true,
+          },
+        },
+        look: true,
+      },
+    });
+
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
+    // Verify user owns this booking
+    if (booking.clientId !== userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // Check if already paid
+    if (booking.paymentStatus === 'paid') {
+      return NextResponse.json({ error: 'Booking already paid' }, { status: 400 });
+    }
+
+    // Calculate prices - 15% service fee (client sees this)
+    const servicePrice = parseFloat((booking.service as any).price || '0');
+    const serviceFee = servicePrice * SERVICE_FEE_PERCENTAGE;
+    const totalPrice = servicePrice + serviceFee;
+
+    // Check if tech was referred - referrer gets 5% of service price
+    const techProfile = booking.techProfile as any;
+    let referralFee = 0;
+    let referrerTechId = null;
+    
+    if (techProfile.referredByTechId) {
+      // Get referrer tech profile to check if they have Stripe Connect
+      const referrerTech = await db.query.techProfiles.findFirst({
+        where: eq(techProfiles.id, techProfile.referredByTechId),
+      });
+      
+      if (referrerTech && referrerTech.payoutsEnabled && referrerTech.stripeConnectAccountId) {
+        referralFee = servicePrice * REFERRAL_FEE_PERCENTAGE;
+        referrerTechId = referrerTech.id;
+      }
+    }
+
+    // Platform fee = 15% total - 5% referral (if applicable) = 10% or 15%
+    const platformFee = serviceFee - referralFee;
+
+    // Update booking with price breakdown
+    await db
+      .update(bookings)
+      .set({
+        servicePrice: servicePrice.toFixed(2),
+        serviceFee: serviceFee.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        referrerTechId: referrerTechId,
+        referralFee: referralFee.toFixed(2),
+      })
+      .where(eq(bookings.id, bookingId));
+
+    // Check if tech has Stripe Connect account
+    const hasStripeConnect = techProfile.stripeConnectAccountId && techProfile.payoutsEnabled;
+
+    // Create payment intent data with transfer if tech has Connect account
+    const paymentIntentData: any = {
+      metadata: {
+        bookingId: bookingId.toString(),
+        userId: userId.toString(),
+        techProfileId: techProfile.id.toString(),
+        type: 'booking_payment',
+        referrerTechId: referrerTechId?.toString() || '',
+        referralFee: referralFee.toFixed(2),
+      },
+    };
+
+    // If tech has Stripe Connect, use destination charges to split payment
+    // Platform keeps: platformFee (10% if referral, 15% if no referral)
+    // Tech receives: servicePrice
+    // Referrer receives: referralFee (handled separately via transfer after payment)
+    if (hasStripeConnect) {
+      paymentIntentData.application_fee_amount = Math.round(platformFee * 100); // Platform fee in cents (10% or 15%)
+      paymentIntentData.transfer_data = {
+        destination: techProfile.stripeConnectAccountId, // Tech receives service price
+      };
+    }
+
+    // Create Stripe Checkout Session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: (booking.service as any).name,
+              description: `Appointment with ${techProfile.businessName || techProfile.user.username}`,
+              images: (booking.look as any)?.imageUrl ? [(booking.look as any).imageUrl] : undefined,
+            },
+            unit_amount: Math.round(totalPrice * 100), // Total amount in cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/bookings?payment=success&booking_id=${bookingId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/bookings?payment=cancelled`,
+      customer_email: user.email,
+      metadata: {
+        bookingId: bookingId.toString(),
+        userId: userId.toString(),
+        techProfileId: techProfile.id.toString(),
+        type: 'booking_payment',
+      },
+      payment_intent_data: paymentIntentData,
+    });
+
+    // Save checkout session ID
+    await db
+      .update(bookings)
+      .set({
+        stripeCheckoutSessionId: checkoutSession.id,
+      })
+      .where(eq(bookings.id, bookingId));
+
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+    });
+  } catch (error) {
+    console.error('Error creating booking checkout:', error);
+    return NextResponse.json(
+      { error: 'Failed to create checkout session' },
+      { status: 500 }
+    );
+  }
+}
