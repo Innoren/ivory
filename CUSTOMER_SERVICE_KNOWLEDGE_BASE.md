@@ -1,14 +1,14 @@
-# Ivory's Choice - Complete Customer Service Knowledge Base
+# Ivories Choice - Complete Customer Service Knowledge Base
 
-**Last Updated:** January 3, 2026  
-**Version:** 2.0  
+**Last Updated:** February 22, 2026  
+**Version:** 3.0  
 **For:** Customer Service Chatbot Training
 
 ---
 
 ## Table of Contents
 
-1. [About Ivory's Choice](#about-ivorys-choice)
+1. [About Ivories Choice](#about-ivorys-choice)
 2. [Account Management](#account-management)
 3. [Pricing & Subscriptions](#pricing--subscriptions)
 4. [Credits System](#credits-system)
@@ -23,9 +23,9 @@
 
 ---
 
-## About Ivory's Choice
+## About Ivories Choice
 
-### What is Ivory's Choice?
+### What is Ivories Choice?
 
 Ivory's Choice is an AI-powered nail design platform that connects clients with professional nail technicians. The app allows users to:
 
@@ -56,7 +56,7 @@ Ivory's Choice is an AI-powered nail design platform that connects clients with 
 ### Platform Availability
 
 - **iOS App:** Available on App Store (native app with Apple Watch support)
-- **Web App:** Accessible via web browser at https://ivoryschoice.com
+- **Web App:** Accessible via web browser at https://ivorieschoice.com
 - **Android:** Coming soon
 
 ---
