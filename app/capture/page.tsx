@@ -810,11 +810,15 @@ export default function CapturePage() {
       
       // Provide specific error messages
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        alert("Camera access denied. Please allow camera permissions and refresh the page.\n\nTo enable:\n1. Click the lock/info icon in your browser's address bar\n2. Allow camera access\n3. Refresh this page")
+        toast.error("Camera access denied", {
+          description: "Please allow camera permissions in your browser settings and refresh the page."
+        })
       } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        alert("No camera found on this device.")
+        toast.error("No camera found on this device")
       } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-        alert("Camera is already in use by another application. Please close other apps using the camera and try again.")
+        toast.error("Camera is already in use", {
+          description: "Please close other apps using the camera and try again."
+        })
       } else if (error.name === 'OverconstrainedError') {
         alert("Camera doesn't support the requested settings. Trying with default settings...")
         // Try again with basic constraints

@@ -416,9 +416,9 @@ function AuthPageContent() {
           return
         }
         
-        // If user already has a type, go to capture/dashboard, otherwise select type
+        // If user already has a type, go to home/dashboard, otherwise select type
         if (user.userType) {
-          router.push(user.userType === 'tech' ? '/tech/dashboard' : '/capture')
+          router.push(user.userType === 'tech' ? '/tech/dashboard' : '/home')
         } else {
           router.push("/user-type")
         }
