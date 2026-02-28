@@ -81,7 +81,7 @@ export default function UserTypePage() {
             Choose Your Experience
           </h1>
           <p className="text-sm sm:text-base lg:text-lg text-[#6B6B6B] font-light max-w-2xl mx-auto leading-[1.7] tracking-wide">
-            Select how you'd like to experience Ivory's Choice
+            Select how you'd like to experience Ivories Choice
           </p>
         </div>
 

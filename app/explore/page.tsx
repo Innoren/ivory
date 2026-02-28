@@ -135,14 +135,14 @@ export default function ExplorePage() {
             >
               <Image 
                 src="/Web_logo.png" 
-                alt="Ivory's Choice" 
+                alt="Ivories Choice" 
                 width={50}
                 height={50}
                 className="h-8 sm:h-10 w-auto"
                 priority
               />
               <span className="font-serif text-xl sm:text-2xl tracking-tight text-[#1A1A1A] font-light">
-                IVORY'S CHOICE
+                IVORIES CHOICE
               </span>
             </button>
             

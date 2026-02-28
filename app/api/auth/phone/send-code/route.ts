@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     // Send verification code via Twilio SMS
     const result = await sendSMS(
       formattedPhone, 
-      `Your Ivory's Choice verification code is: ${otp}. This code expires in 10 minutes.`
+      `Your Ivories Choice verification code is: ${otp}. This code expires in 10 minutes.`
     );
 
     if (!result.success) {

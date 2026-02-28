@@ -547,7 +547,7 @@ function AuthPageContent() {
                 <div className="absolute inset-0 bg-[#8B7355] opacity-10 blur-xl rounded-full animate-glow-pulse" />
                 <Image 
                   src="/Web_logo.png" 
-                  alt="Ivory's Choice" 
+                  alt="Ivories Choice" 
                   width={80}
                   height={80}
                   className="h-14 sm:h-16 md:h-20 w-auto relative z-10"
@@ -555,7 +555,7 @@ function AuthPageContent() {
                 />
               </div>
               <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-[#1A1A1A] tracking-tight">
-                IVORY'S CHOICE
+                IVORIES CHOICE
               </h1>
             </div>
             
@@ -566,7 +566,7 @@ function AuthPageContent() {
             {/* Enhanced Account Toggle */}
             <div className="inline-flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-4 border border-[#E8E8E8] bg-gradient-to-br from-[#FAFAF8] to-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-500 hover:scale-[1.02]">
               <span className="text-xs md:text-sm tracking-wide text-[#6B6B6B] font-light">
-                {isSignUp ? "Already have an account?" : "New to Ivory's Choice?"}
+                {isSignUp ? "Already have an account?" : "New to Ivories Choice?"}
               </span>
               <button 
                 type="button" 

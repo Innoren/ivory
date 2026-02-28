@@ -65,7 +65,7 @@ export default function SharePage() {
       try {
         await navigator.share({
           title: 'Check out my nail design!',
-          text: `I created this design on Ivory's Choice`,
+          text: `I created this design on Ivories Choice`,
           url: shareLink,
         })
         toast.success('Shared successfully!')
@@ -106,7 +106,7 @@ export default function SharePage() {
   }
 
   const shareVia = (platform: string) => {
-    const text = `Check out my nail design on Ivory's Choice!`
+    const text = `Check out my nail design on Ivories Choice!`
     const urls = {
       instagram: `https://www.instagram.com/`, // Instagram doesn't support web sharing
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink)}`,

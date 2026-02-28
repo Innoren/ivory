@@ -156,7 +156,7 @@ export default function SharedDesignPage() {
     if (navigator.share) {
       navigator.share({
         title: look?.title || 'Check out this nail design!',
-        text: `Check out this design on Ivory's Choice`,
+        text: `Check out this design on Ivories Choice`,
         url: window.location.href,
       }).catch(() => {})
     } else {
@@ -241,10 +241,10 @@ export default function SharedDesignPage() {
         <meta name="apple-itunes-app" content={`app-id=YOUR_APP_ID, app-argument=ivoryschoice://shared/${params.id}`} />
         <meta name="al:ios:url" content={`ivoryschoice://shared/${params.id}`} />
         <meta name="al:ios:app_store_id" content="YOUR_APP_ID" />
-        <meta name="al:ios:app_name" content="Ivory's Choice" />
+        <meta name="al:ios:app_name" content="Ivories Choice" />
         <meta name="al:android:url" content={`ivoryschoice://shared/${params.id}`} />
         <meta name="al:android:package" content="com.ivoryschoice.app" />
-        <meta name="al:android:app_name" content="Ivory's Choice" />
+        <meta name="al:android:app_name" content="Ivories Choice" />
       </Head>
       <div className="min-h-screen bg-white pb-safe">
         {/* Header */}
@@ -264,13 +264,13 @@ export default function SharedDesignPage() {
                 <div className="flex items-center gap-2 sm:gap-3">
                   <Image 
                     src="/Web_logo.png" 
-                    alt="Ivory's Choice" 
+                    alt="Ivories Choice" 
                     width={45}
                     height={45}
                     className="h-8 sm:h-9 w-auto"
                     priority
                   />
-                  <h1 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight">IVORY'S CHOICE</h1>
+                  <h1 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight">IVORIES CHOICE</h1>
                 </div>
               </div>
               

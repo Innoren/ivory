@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ivory.app',
-  appName: "Ivory's Choice",
+  appName: "Ivories Choice",
   webDir: 'out',
   // server: {
   //   // Production URL - COMMENT OUT for native builds with IAP

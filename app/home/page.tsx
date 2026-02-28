@@ -297,14 +297,14 @@ export default function HomePage() {
         <div className={`max-w-screen-xl mx-auto ${isWatch ? 'px-3 py-2' : 'px-4 sm:px-6 py-3 sm:py-4'} flex items-center gap-2 sm:gap-3`}>
           <Image 
             src="/Web_logo.png" 
-            alt="Ivory's Choice" 
+            alt="Ivories Choice" 
             width={isWatch ? 32 : 50}
             height={isWatch ? 32 : 50}
             className={`transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'} ${isWatch ? 'h-6' : 'h-7 sm:h-9'} w-auto`}
             priority
           />
           <h1 className={`font-serif font-light text-[#1A1A1A] tracking-tight transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'} ${isWatch ? 'text-sm' : 'text-base sm:text-xl'}`}>
-            {isWatch ? "IVORY'S" : "IVORY'S CHOICE"}
+            {isWatch ? "IVORIES" : "IVORIES CHOICE"}
           </h1>
         </div>
       </header>
