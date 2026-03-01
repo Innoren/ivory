@@ -4,13 +4,13 @@ const config: CapacitorConfig = {
   appId: 'com.ivory.app',
   appName: "Ivories Choice",
   webDir: 'out',
-  // server: {
-  //   // Production URL - COMMENT OUT for native builds with IAP
-  //   url: 'https://www.ivoryschoice.com',
-  //   // For local development, uncomment below:
-  //   // url: 'http://localhost:3000',
-  //   // cleartext: true
-  // },
+  server: {
+    // Production URL - loads your live app with working APIs
+    url: 'https://www.ivorieschoice.com',
+    // For local development, uncomment below:
+    // url: 'http://localhost:3000',
+    // cleartext: true
+  },
   ios: {
     contentInset: 'automatic',
     backgroundColor: '#FFFFFF',
