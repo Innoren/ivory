@@ -45,7 +45,7 @@ class WebViewModel: ObservableObject {
         #if DEBUG
         let baseURL = "http://localhost:3000"
         #else
-        let baseURL = "https://www.ivoryschoice.com"
+        let baseURL = "https://www.ivorieschoice.com"
         #endif
         
         if let targetURL = URL(string: baseURL + path) {
@@ -60,16 +60,15 @@ class WebViewModel: ObservableObject {
     // MARK: - Web App Loading
     
     func loadWebApp() {
-        // Load from localhost during development, production URL for release
-        #if DEBUG
-        let urlString = "http://localhost:3000"
-        #else
-        let urlString = "https://www.ivoryschoice.com"
-        #endif
+        // Always load from production URL
+        let urlString = "https://www.ivorieschoice.com"
         
         if let url = URL(string: urlString) {
             let request = URLRequest(url: url)
             webView?.load(request)
+            print("🔵 Loading web app from: \(urlString)")
+        }
+    }
             print("🔵 Loading web app from: \(urlString)")
         }
     }
@@ -530,11 +529,7 @@ class WebViewModel: ObservableObject {
     // MARK: - Navigation
     
     func navigateToLogin() {
-        #if DEBUG
-        let urlString = "http://localhost:3000"
-        #else
-        let urlString = "https://www.ivoryschoice.com"
-        #endif
+        let urlString = "https://www.ivorieschoice.com"
         
         if let url = URL(string: urlString) {
             let request = URLRequest(url: url)

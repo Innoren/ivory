@@ -24,7 +24,7 @@ class WebViewModel: ObservableObject {
     
     func loadWebApp() {
         // Always load from production URL
-        if let url = URL(string: "https://www.ivoryschoice.com") {
+        if let url = URL(string: "https://www.ivorieschoice.com") {
             let request = URLRequest(url: url)
             webView?.load(request)
         }

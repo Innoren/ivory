@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: "Ivory's Choice",
   webDir: 'out',
   // server: {
-  //   // Production URL - COMMENT OUT for native builds with IAP
-  //   url: 'https://www.ivoryschoice.com',
+  //   // Production URL - API calls will be routed to this server
+  //   url: 'https://www.ivorieschoice.com',
+  //   cleartext: false,
   //   // For local development, uncomment below:
   //   // url: 'http://localhost:3000',
   //   // cleartext: true
