@@ -304,7 +304,7 @@ export default function HomePage() {
             priority
           />
           <h1 className={`font-serif font-light text-[#1A1A1A] tracking-tight transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'} ${isWatch ? 'text-sm' : 'text-base sm:text-xl'}`}>
-            {isWatch ? "IVORY'S" : "IVORY'S CHOICE"}
+            {isWatch ? "IVORIES" : "IVORIES CHOICE"}
           </h1>
         </div>
       </header>

@@ -39,7 +39,7 @@ export default function LandingPage() {
                 priority
               />
               <span className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1A1A1A] font-light">
-                IVORY'S CHOICE
+                IVORIES CHOICE
               </span>
             </div>
             
@@ -369,7 +369,7 @@ export default function LandingPage() {
                   height={40}
                   className="h-8 sm:h-9 w-auto"
                 />
-                <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">IVORY'S CHOICE</h3>
+                <h3 className="font-serif text-xl sm:text-2xl font-light text-[#1A1A1A] tracking-tight">IVORIES CHOICE</h3>
               </div>
               <p className="text-sm sm:text-base text-[#6B6B6B] font-light leading-[1.7] tracking-wide">
                 Where artistry meets innovation

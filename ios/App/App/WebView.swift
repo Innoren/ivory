@@ -19,9 +19,12 @@ struct WebView: UIViewRepresentable {
         let configuration = WKWebViewConfiguration()
         
         // Configure preferences
-        configuration.preferences.javaScriptEnabled = true
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
+        
+        // Increase memory limits to prevent crashes
+        configuration.processPool = WKProcessPool()
         
         // Add message handlers for JavaScript bridge
         let contentController = configuration.userContentController
@@ -39,9 +42,11 @@ struct WebView: UIViewRepresentable {
         webView.scrollView.maximumZoomScale = 1.0
         webView.scrollView.minimumZoomScale = 1.0
         
-        // Load the web app
-        viewModel.webView = webView
-        viewModel.loadWebApp()
+        // Load the web app with a small delay to ensure network is ready
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            viewModel.webView = webView
+            viewModel.loadWebApp()
+        }
         
         return webView
     }
@@ -99,6 +104,11 @@ struct WebView: UIViewRepresentable {
                         --safe-area-inset-right: \(safeAreaInsets.right)px;
                     }
                     
+                    /* Hide the app header/title in iOS native app */
+                    header, .header, [class*="header"], nav {
+                        display: none !important;
+                    }
+                    
                     /* Add extra padding to body for external pages (like Stripe checkout) */
                     /* Using safe area + 40px extra to push content well below the notch */
                     body {
@@ -134,10 +144,37 @@ struct WebView: UIViewRepresentable {
                 self.parent.viewModel.isLoading = false
             }
             print("❌ WebView navigation failed: \(error.localizedDescription)")
+            print("❌ Error code: \((error as NSError).code)")
             
-            // Try to reload after a delay if it's a network error
-            if (error as NSError).code == NSURLErrorCannotConnectToHost {
-                print("🔄 Retrying connection to localhost in 2 seconds...")
+            // Retry on network errors or connection failures
+            let errorCode = (error as NSError).code
+            if errorCode == NSURLErrorCannotConnectToHost || 
+               errorCode == NSURLErrorNotConnectedToInternet ||
+               errorCode == NSURLErrorNetworkConnectionLost ||
+               errorCode == NSURLErrorTimedOut {
+                print("🔄 Network error detected. Retrying in 2 seconds...")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    self.parent.viewModel.loadWebApp()
+                }
+            }
+        }
+        
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            DispatchQueue.main.async {
+                self.parent.viewModel.isLoading = false
+            }
+            print("❌ WebView provisional navigation failed: \(error.localizedDescription)")
+            print("❌ Error code: \((error as NSError).code)")
+            
+            // Retry on network errors, 404, or connection failures
+            let errorCode = (error as NSError).code
+            if errorCode == NSURLErrorCannotConnectToHost || 
+               errorCode == NSURLErrorNotConnectedToInternet ||
+               errorCode == NSURLErrorNetworkConnectionLost ||
+               errorCode == NSURLErrorTimedOut ||
+               errorCode == NSURLErrorBadURL ||
+               errorCode == NSURLErrorCannotFindHost {
+                print("🔄 Network/DNS error detected. Retrying in 2 seconds...")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self.parent.viewModel.loadWebApp()
                 }
@@ -154,6 +191,14 @@ struct WebView: UIViewRepresentable {
                 return
             }
             decisionHandler(.allow)
+        }
+        
+        // Handle WebView crashes
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            print("❌ WebView process terminated! Reloading...")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.parent.viewModel.loadWebApp()
+            }
         }
         
         // MARK: - UI Delegate

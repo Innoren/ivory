@@ -270,7 +270,7 @@ export default function SharedDesignPage() {
                     className="h-8 sm:h-9 w-auto"
                     priority
                   />
-                  <h1 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight">IVORY'S CHOICE</h1>
+                  <h1 className="font-serif text-lg sm:text-xl font-light text-[#1A1A1A] tracking-tight">IVORIES CHOICE</h1>
                 </div>
               </div>
               

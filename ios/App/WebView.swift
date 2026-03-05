@@ -19,7 +19,7 @@ struct WebView: UIViewRepresentable {
         let configuration = WKWebViewConfiguration()
         
         // Configure preferences
-        configuration.preferences.javaScriptEnabled = true
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
         

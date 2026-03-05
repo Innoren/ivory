@@ -142,7 +142,7 @@ export default function ExplorePage() {
                 priority
               />
               <span className="font-serif text-xl sm:text-2xl tracking-tight text-[#1A1A1A] font-light">
-                IVORY'S CHOICE
+                IVORIES CHOICE
               </span>
             </button>
             

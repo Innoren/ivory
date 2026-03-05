@@ -555,7 +555,7 @@ function AuthPageContent() {
                 />
               </div>
               <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-[#1A1A1A] tracking-tight">
-                IVORY'S CHOICE
+                IVORIES CHOICE
               </h1>
             </div>
             

@@ -8,6 +8,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         os_log("🟢 AppDelegate: Application did finish launching (Native SwiftUI)", log: logger, type: .info)
         
+        // Suppress Auto Layout constraint warnings (common iOS keyboard issue)
+        UserDefaults.standard.setValue(false, forKey: "_UIConstraintBasedLayoutLogUnsatisfiable")
+        
         // Initialize managers
         _ = IAPManager.shared
         _ = WatchConnectivityManager.shared
