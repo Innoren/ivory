@@ -52,6 +52,10 @@ async function uploadToVercelBlob(
   filename: string,
   options?: { folder?: string; contentType?: string }
 ): Promise<{ url: string; key: string }> {
+  if (!config.BLOB_READ_WRITE_TOKEN || config.BLOB_READ_WRITE_TOKEN === 'ivories_READ_WRITE_TOKEN') {
+    throw new Error('Invalid Vercel Blob token. Please configure BLOB_READ_WRITE_TOKEN in your environment variables or set up Cloudflare R2 storage.');
+  }
+  
   const { put } = await import('@vercel/blob');
   
   const pathname = options?.folder ? `${options.folder}/${filename}` : filename;
