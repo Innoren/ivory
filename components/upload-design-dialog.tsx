@@ -50,10 +50,13 @@ export function UploadDesignDialog({ onUploadComplete, trigger }: UploadDesignDi
       })
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image')
+        const errorData = await uploadResponse.json()
+        console.error('Upload failed:', errorData)
+        throw new Error(errorData.error || 'Failed to upload image')
       }
 
       const { url } = await uploadResponse.json()
+      console.log('Upload successful, URL:', url)
       
       // Auto-generate title from filename
       const filename = file.name.replace(/\.[^/.]+$/, '') // Remove extension
@@ -65,6 +68,7 @@ export function UploadDesignDialog({ onUploadComplete, trigger }: UploadDesignDi
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Ensure cookies are sent
         body: JSON.stringify({
           imageUrl: url,
           title: autoTitle,
@@ -76,13 +80,20 @@ export function UploadDesignDialog({ onUploadComplete, trigger }: UploadDesignDi
       })
 
       if (!saveResponse.ok) {
-        throw new Error('Failed to save design')
+        const errorData = await saveResponse.json()
+        console.error('Save design failed:', errorData)
+        throw new Error(errorData.error || 'Failed to save design')
       }
+
+      console.log('Design saved successfully')
 
       // Notify parent and wait for it to complete
       if (onUploadComplete) {
         await onUploadComplete()
       }
+
+      // Show success message
+      alert('Design uploaded successfully!')
 
       // Reset state after parent callback completes
       setUploading(false)
