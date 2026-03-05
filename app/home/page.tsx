@@ -411,9 +411,9 @@ export default function HomePage() {
                 <div className={`grid ${isNative ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
                   {/* Upload Design - Always visible */}
                   <UploadDesignDialog 
-                    onUploadComplete={() => {
-                      // Reload designs
-                      const loadData = async () => {
+                    onUploadComplete={async () => {
+                      // Reload designs immediately after upload
+                      try {
                         const userStr = localStorage.getItem("ivoryUser")
                         if (!userStr) return
                         const user = JSON.parse(userStr)
@@ -445,8 +445,9 @@ export default function HomePage() {
                           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                         )
                         setLooks(allDesigns)
+                      } catch (error) {
+                        console.error('Error reloading designs:', error)
                       }
-                      loadData()
                     }}
                   />
                   {/* Create Design - Hidden on native iOS */}

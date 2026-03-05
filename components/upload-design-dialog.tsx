@@ -79,15 +79,15 @@ export function UploadDesignDialog({ onUploadComplete, trigger }: UploadDesignDi
         throw new Error('Failed to save design')
       }
 
-      // Reset state
+      // Notify parent and wait for it to complete
+      if (onUploadComplete) {
+        await onUploadComplete()
+      }
+
+      // Reset state after parent callback completes
       setUploading(false)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
-      }
-
-      // Notify parent
-      if (onUploadComplete) {
-        onUploadComplete()
       }
     } catch (error: any) {
       console.error('Upload error:', error)
