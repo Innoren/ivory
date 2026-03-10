@@ -46,13 +46,8 @@ export function DesignAnalysisDisplay({ imageUrl, lookId, savedDesignId }: Props
 
         if (response.ok) {
           setAnalysis(data.analysis)
-          // Only show typing animation for newly generated analysis
-          if (!data.cached) {
-            setIsTyping(true)
-          } else {
-            // For cached analysis, show immediately
-            setDisplayedSummary(data.analysis.summary)
-          }
+          // Show immediately without typing animation
+          setDisplayedSummary(data.analysis.summary)
         } else {
           // Handle error responses
           setError(data.error || 'Unable to analyze this design')
@@ -128,17 +123,10 @@ export function DesignAnalysisDisplay({ imageUrl, lookId, savedDesignId }: Props
         </h2>
       </div>
 
-      {/* Summary with typing animation */}
+      {/* Summary - displays instantly */}
       <div className="space-y-2">
         <p className="text-sm sm:text-base text-[#1A1A1A] font-light leading-relaxed min-h-[3rem]">
           {displayedSummary}
-          {isTyping && (
-            <img 
-              src="https://64.media.tumblr.com/96702234ff6a92ce2060b206943c3405/1ba90b97996d3468-59/s400x600/f14beb0b2d9633fa39066406945ecec8f89c8833.gifv" 
-              alt="Sparkling animation"
-              className="inline-block w-5 h-5 object-contain align-middle ml-1"
-            />
-          )}
         </p>
       </div>
 
