@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Only allow for developer account
-    if (user.username !== 'simplyjosh56') {
+    // Only allow for developer accounts
+    if (user.username !== 'simplyjosh56' && user.username !== 'JustinDev') {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
 
