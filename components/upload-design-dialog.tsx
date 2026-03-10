@@ -85,7 +85,21 @@ export function UploadDesignDialog({ onUploadComplete, trigger }: UploadDesignDi
         throw new Error(errorData.error || 'Failed to save design')
       }
 
-      console.log('Design saved successfully')
+      const { design } = await saveResponse.json()
+      console.log('Design saved successfully, ID:', design.id)
+
+      // Trigger AI analysis in the background (don't wait for it)
+      fetch('/api/analyze-saved-design', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          imageUrl: url,
+          savedDesignId: design.id,
+        }),
+      }).catch(err => console.error('AI analysis failed:', err))
 
       // Notify parent and wait for it to complete
       if (onUploadComplete) {

@@ -15,6 +15,7 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     backgroundColor: '#FFFFFF',
+    scheme: 'Ivories Choice Production',
   },
   plugins: {
     Camera: {
