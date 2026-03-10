@@ -1166,10 +1166,12 @@ export default function CapturePage() {
       })
 
       if (response.ok) {
+        console.log('✅ Generation successful!')
         setGenerationProgress(100)
         const { imageUrl, imageUrls, creditsRemaining } = await response.json()
         // Use imageUrls if available (new format), fallback to imageUrl for backward compatibility
         const images = imageUrls || [imageUrl]
+        console.log('✅ Received images:', images.length)
         setFinalPreviews(images)
         setFinalPreview(images[0]) // Set first image as primary for backward compatibility
         
@@ -1180,6 +1182,8 @@ export default function CapturePage() {
         await autoSaveDesigns(images)
       } else {
         const error = await response.json()
+        console.error('❌ Generation API error:', error)
+        console.error('❌ Response status:', response.status)
         toast.error('Generation failed', {
           description: error.error || 'Failed to generate design',
         })

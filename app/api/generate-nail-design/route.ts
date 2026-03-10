@@ -13,31 +13,41 @@ function getOpenAIClient() {
   return new OpenAI({ apiKey })
 }
 
-function getR2Client() {
-  return new S3Client({
-    region: 'auto',
-    endpoint: config.R2_ENDPOINT,
-    credentials: {
-      accessKeyId: config.R2_ACCESS_KEY_ID,
-      secretAccessKey: config.R2_SECRET_ACCESS_KEY,
-    },
-  })
-}
-
-async function uploadToR2(buffer: Buffer, filename: string): Promise<string> {
-  const r2Client = getR2Client()
-  const key = `generated/${filename}`
-  
-  await r2Client.send(
-    new PutObjectCommand({
-      Bucket: config.R2_BUCKET_NAME,
-      Key: key,
-      Body: buffer,
-      ContentType: 'image/png',
+async function uploadImage(buffer: Buffer, filename: string): Promise<string> {
+  // Try R2 first if configured
+  if (config.R2_ACCESS_KEY_ID && config.R2_SECRET_ACCESS_KEY && config.R2_PUBLIC_URL) {
+    const r2Client = new S3Client({
+      region: 'auto',
+      endpoint: config.R2_ENDPOINT,
+      credentials: {
+        accessKeyId: config.R2_ACCESS_KEY_ID,
+        secretAccessKey: config.R2_SECRET_ACCESS_KEY,
+      },
     })
-  )
+    
+    const key = `generated/${filename}`
+    
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: config.R2_BUCKET_NAME,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/png',
+      })
+    )
+    
+    return `${config.R2_PUBLIC_URL}/${key}`
+  }
   
-  return `${config.R2_PUBLIC_URL}/${key}`
+  // Fallback to Vercel Blob
+  const { put } = await import('@vercel/blob')
+  const blob = await put(`generated/${filename}`, buffer, {
+    access: 'public',
+    token: config.BLOB_READ_WRITE_TOKEN,
+    contentType: 'image/png',
+  })
+  
+  return blob.url
 }
 
 export async function POST(request: NextRequest) {
@@ -382,9 +392,9 @@ OUTPUT: Return ONE image with the same hand, same number of fingers, same orient
     }
 
     console.log(`✅ Received ${response.data.length} images`)
-    console.log('📤 Uploading to R2...')
+    console.log('📤 Uploading generated images...')
     
-    // Upload all generated images to R2
+    // Upload all generated images
     const uploadPromises = response.data.map(async (imageData, index) => {
       const base64Image = imageData.b64_json
       
@@ -396,8 +406,8 @@ OUTPUT: Return ONE image with the same hand, same number of fingers, same orient
       const imageBuffer = Buffer.from(base64Image, 'base64')
       const filename = `nail-design-${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${index + 1}.png`
       
-      const url = await uploadToR2(imageBuffer, filename)
-      console.log(`✅ Uploaded image ${index + 1} to R2:`, url)
+      const url = await uploadImage(imageBuffer, filename)
+      console.log(`✅ Uploaded image ${index + 1}:`, url)
       
       return url
     })
@@ -405,7 +415,7 @@ OUTPUT: Return ONE image with the same hand, same number of fingers, same orient
     const imageUrls = (await Promise.all(uploadPromises)).filter(url => url !== null) as string[]
     
     if (imageUrls.length === 0) {
-      throw new Error('Failed to upload any images to R2')
+      throw new Error('Failed to upload any images')
     }
     
     console.log(`✅ Successfully uploaded ${imageUrls.length} images`)
