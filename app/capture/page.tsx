@@ -456,14 +456,16 @@ export default function CapturePage() {
           // Stop camera immediately
           stopCamera()
           
-          // First, update the tabs with the design image (only selectedDesignImages, not originalImage)
+          // First, update the tabs with the design image
+          // If there's no existing originalImage (hand photo), use the design image as the base
           setDesignTabs(prevTabs => {
             const updatedTabs = prevTabs.map(tab => 
               tab.id === 'tab-initial-1' 
                 ? {
                     ...tab,
-                    selectedDesignImages: [loadedDesignImage]
-                    // Keep originalImage unchanged - don't overwrite the hand reference photo
+                    selectedDesignImages: [loadedDesignImage],
+                    // If no hand reference photo exists, use the design image as the base
+                    originalImage: tab.originalImage || loadedDesignImage
                   }
                 : tab
             )
@@ -473,10 +475,15 @@ export default function CapturePage() {
             return updatedTabs
           })
           
-          // Directly set the state as well (only selectedDesignImages, not capturedImage)
+          // Set both the design image and captured image if no hand photo exists
           console.log('✅ Setting selectedDesignImages state to:', [loadedDesignImage])
           setSelectedDesignImages([loadedDesignImage])
-          // Don't set capturedImage - keep the original hand reference photo
+          
+          // If no captured image exists, use the design image as the base
+          if (!capturedImage) {
+            console.log('✅ No hand reference photo, using design image as base')
+            setCapturedImage(loadedDesignImage)
+          }
           
           // Set the design image influence to 100% and base color to 0%
           console.log('✅ Setting influence weights: designImage=100, baseColor=0')
