@@ -1055,10 +1055,20 @@ export default function CapturePage() {
   }
 
   const handleConfirmGeneration = () => {
+    console.log('🎯 Confirm generation clicked')
+    console.log('🎯 Has credits:', hasCredits(1))
+    console.log('🎯 Credits value:', credits)
+    console.log('🎯 Pending settings:', pendingGenerationSettings)
+    
     setShowConfirmDialog(false)
     if (pendingGenerationSettings) {
       generateAIPreview(pendingGenerationSettings)
       setPendingGenerationSettings(null)
+    } else {
+      console.error('❌ No pending generation settings!')
+      toast.error('Generation failed', {
+        description: 'Please try again',
+      })
     }
     
     // Complete onboarding when user confirms generation
@@ -1075,10 +1085,21 @@ export default function CapturePage() {
   }
 
   const generateAIPreview = async (settings: DesignSettings) => {
-    if (!capturedImage) return
+    console.log('🎨 Starting generateAIPreview')
+    console.log('🎨 Captured image exists:', !!capturedImage)
+    console.log('🎨 Has credits:', hasCredits(1))
+    
+    if (!capturedImage) {
+      console.error('❌ No captured image!')
+      toast.error('No image captured', {
+        description: 'Please capture an image first',
+      })
+      return
+    }
     
     // Check credits before generating
     if (!hasCredits(1)) {
+      console.error('❌ Insufficient credits!')
       toast.error('Insufficient credits', {
         description: 'You need 1 credit to generate a design. Refer friends to earn more!',
         action: {
@@ -1088,6 +1109,8 @@ export default function CapturePage() {
       })
       return
     }
+    
+    console.log('✅ All checks passed, starting generation...')
     
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController()
