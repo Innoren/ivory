@@ -120,7 +120,13 @@ export default function BookingInvitePage() {
         return;
       }
 
-      window.location.href = data.url;
+      // On iOS native app, use Capacitor Browser to open Stripe
+      if (isNativeIOS()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: data.url });
+      } else {
+        window.location.href = data.url;
+      }
     } catch (error) {
       console.error('Error creating payment:', error);
       setError('Failed to process payment');

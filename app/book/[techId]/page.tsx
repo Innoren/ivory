@@ -339,7 +339,14 @@ export default function BookAppointmentPage() {
 
       const data = await response.json();
       triggerHaptic('success');
-      window.location.href = data.url;
+      
+      // On iOS native app, use Capacitor Browser to open Stripe
+      if (isNativeIOS()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: data.url });
+      } else {
+        window.location.href = data.url;
+      }
     } catch (error) {
       console.error('Error creating booking:', error);
       alert('Failed to create booking');

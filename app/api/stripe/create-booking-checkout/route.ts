@@ -150,10 +150,19 @@ export async function POST(request: NextRequest) {
     // Tech receives: servicePrice
     // Referrer receives: referralFee (handled separately via transfer after payment)
     if (hasStripeConnect) {
-      paymentIntentData.application_fee_amount = Math.round(platformFee * 100); // Platform fee in cents (10% or 15%)
-      paymentIntentData.transfer_data = {
-        destination: techProfile.stripeConnectAccountId, // Tech receives service price
-      };
+      try {
+        // Verify the Connect account is valid before using it
+        const account = await stripe.accounts.retrieve(techProfile.stripeConnectAccountId);
+        if (account && account.charges_enabled) {
+          paymentIntentData.application_fee_amount = Math.round(platformFee * 100);
+          paymentIntentData.transfer_data = {
+            destination: techProfile.stripeConnectAccountId,
+          };
+        }
+      } catch (connectError) {
+        console.error('Stripe Connect account error, proceeding without transfer:', connectError);
+        // Continue without Connect - payment goes to platform account
+      }
     }
 
     // Create Stripe Checkout Session
