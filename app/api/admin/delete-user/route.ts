@@ -74,12 +74,12 @@ export async function DELETE(request: NextRequest) {
 
       // Delete design requests to this tech
       const techDesignRequests = await db.query.designRequests.findMany({
-        where: eq(designRequests.techProfileId, tpId),
+        where: eq(designRequests.techId, uid),
       })
       for (const dr of techDesignRequests) {
         await db.delete(designRequestMessages).where(eq(designRequestMessages.designRequestId, dr.id))
       }
-      await db.delete(designRequests).where(eq(designRequests.techProfileId, tpId))
+      await db.delete(designRequests).where(eq(designRequests.techId, uid))
 
       // Delete reviews
       await db.delete(reviews).where(eq(reviews.techProfileId, tpId))
@@ -135,7 +135,7 @@ export async function DELETE(request: NextRequest) {
     await db.delete(aiGenerations).where(eq(aiGenerations.userId, uid))
     await db.delete(sessions).where(eq(sessions.userId, uid))
     await db.delete(notifications).where(eq(notifications.userId, uid))
-    await db.delete(referrals).where(or(eq(referrals.referrerId, uid), eq(referrals.referredId, uid)))
+    await db.delete(referrals).where(or(eq(referrals.referrerId, uid), eq(referrals.referredUserId, uid)))
     await db.delete(creditTransactions).where(eq(creditTransactions.userId, uid))
     await db.delete(contentFlags).where(eq(contentFlags.reporterId, uid))
     await db.delete(blockedUsers).where(or(eq(blockedUsers.blockerId, uid), eq(blockedUsers.blockedId, uid)))
